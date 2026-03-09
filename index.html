@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Absensi Ibadah 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --surface: #fff; --card: #fff;
+  --border: #e8e5df; --border2: #d4d0c8;
+  --teal: #0d7377; --teal-light: #e8f5f5; --teal-mid: #14a085;
+  --amber: #f59e0b; --red: #ef4444; --red-light: #fee2e2;
+  --green: #10b981; --green-light: #d1fae5;
+  --text: #1a1a1a; --text-2: #4a4a4a; --text-3: #8a8a8a; --text-4: #b8b5ae;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+  --radius: 16px; --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Nunito', sans-serif; min-height: 100vh; max-width: 480px; margin: 0 auto; }
+
+/* LOADING SCREEN */
+.loading-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; gap: 16px;
+}
+.loading-screen.hidden { display: none; }
+.loading-spinner {
+  width: 48px; height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.loading-text { font-size: 14px; font-weight: 600; color: var(--text-3); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TOP NAV */
+.top-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(245,244,240,0.95); backdrop-filter: blur(12px);
+  padding: 16px 20px 0; border-bottom: 1px solid var(--border);
+}
+.nav-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.nav-title { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
+.nav-title span { color: var(--teal); }
+.nav-badge { background: var(--teal); color: white; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-family: 'DM Mono', monospace; }
+.mode-tabs { display: flex; gap: 4px; background: var(--border); border-radius: 12px; padding: 4px; margin-bottom: -1px; }
+.mode-tab { flex: 1; padding: 10px 0; border: none; background: transparent; border-radius: 9px; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-3); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.mode-tab.active { background: white; color: var(--teal); box-shadow: var(--shadow); }
+
+/* PAGES */
+.page { display: none; padding: 20px; padding-bottom: 100px; }
+.page.active { display: block; }
+
+.section-label { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+
+/* SERVICE + DATE */
+.service-pills { display: flex; gap: 8px; margin-bottom: 20px; }
+.service-pill { flex: 1; padding: 12px; border: 2px solid var(--border); background: white; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-2); cursor: pointer; transition: all 0.2s; text-align: center; }
+.service-pill.active { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+
+.date-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 20px; scrollbar-width: none; }
+.date-scroll::-webkit-scrollbar { display: none; }
+.date-chip { flex-shrink: 0; padding: 10px 14px; border: 2px solid var(--border); background: white; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; text-align: center; min-width: 64px; }
+.date-chip .day { font-size: 18px; font-weight: 800; color: var(--text); display: block; }
+.date-chip .month { font-size: 11px; font-weight: 600; color: var(--text-3); display: block; }
+.date-chip.active { border-color: var(--teal); background: var(--teal); }
+.date-chip.active .day, .date-chip.active .month { color: white; }
+
+/* STATS BAR */
+.att-stats { display: flex; gap: 8px; margin-bottom: 16px; }
+.att-stat { flex: 1; background: white; border-radius: var(--radius-sm); padding: 12px; text-align: center; border: 1px solid var(--border); }
+.att-stat .num { font-size: 22px; font-weight: 900; font-family: 'DM Mono', monospace; display: block; }
+.att-stat .lbl { font-size: 11px; font-weight: 600; color: var(--text-3); }
+.att-stat.hadir .num { color: var(--green); }
+.att-stat.absen .num { color: var(--red); }
+.att-stat.total .num { color: var(--teal); }
+
+/* FILTER + SEARCH */
+.filter-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; scrollbar-width: none; }
+.filter-scroll::-webkit-scrollbar { display: none; }
+.filter-chip { flex-shrink: 0; padding: 6px 12px; border: 1.5px solid var(--border); background: white; border-radius: 20px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-2); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.filter-chip.active { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
+.search-input { width: 100%; padding: 13px 14px 13px 42px; border: 2px solid var(--border); background: white; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 15px; color: var(--text); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--teal); }
+.search-input::placeholder { color: var(--text-4); }
+
+/* MEMBER LIST */
+.member-list { display: flex; flex-direction: column; gap: 8px; }
+.member-card { background: white; border: 2px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: all 0.15s; cursor: pointer; user-select: none; }
+.member-card:active { transform: scale(0.98); }
+.member-card.is-hadir { border-color: var(--green); background: var(--green-light); }
+.member-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0; transition: all 0.2s; }
+.member-card.is-hadir .member-avatar { background: var(--green); color: white; }
+.member-card:not(.is-hadir) .member-avatar { background: var(--border); color: var(--text-3); }
+.member-info { flex: 1; min-width: 0; }
+.member-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.member-komisi { font-size: 12px; font-weight: 600; color: var(--text-3); margin-top: 1px; }
+.toggle-att { width: 44px; height: 26px; border-radius: 13px; border: none; cursor: pointer; position: relative; transition: all 0.25s; flex-shrink: 0; }
+.toggle-att::after { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: white; top: 3px; transition: all 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+.member-card:not(.is-hadir) .toggle-att { background: var(--border2); }
+.member-card:not(.is-hadir) .toggle-att::after { left: 3px; }
+.member-card.is-hadir .toggle-att { background: var(--green); }
+.member-card.is-hadir .toggle-att::after { left: 21px; }
+
+/* SUBMIT BAR */
+.submit-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 16px 20px; background: white; border-top: 1px solid var(--border); z-index: 50; display: none; }
+.submit-bar.visible { display: block; }
+.submit-btn { width: 100%; padding: 16px; background: var(--teal); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+.submit-btn:active { transform: scale(0.98); }
+.submit-btn:disabled { opacity: 0.5; }
+
+/* DASHBOARD */
+.stats-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.stat-tile { background: white; border-radius: var(--radius); padding: 18px; border: 1px solid var(--border); }
+.stat-tile .st-label { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.stat-tile .st-val { font-size: 32px; font-weight: 900; font-family: 'DM Mono', monospace; line-height: 1; }
+.stat-tile .st-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+.stat-tile:nth-child(1) .st-val { color: var(--teal); }
+.stat-tile:nth-child(2) .st-val { color: var(--green); }
+.stat-tile:nth-child(3) .st-val { color: var(--amber); }
+.stat-tile:nth-child(4) .st-val { color: var(--red); }
+
+.chart-card { background: white; border-radius: var(--radius); padding: 18px; border: 1px solid var(--border); margin-bottom: 16px; }
+.chart-card-title { font-size: 13px; font-weight: 800; color: var(--text-2); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
+.bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; }
+.bar { width: 100%; border-radius: 5px 5px 0 0; background: linear-gradient(180deg, var(--teal), #0a5a5d); min-height: 4px; transition: height 0.5s cubic-bezier(.4,0,.2,1); }
+.bar-lbl { font-size: 9px; color: var(--text-3); font-family: 'DM Mono', monospace; }
+
+.komisi-list { display: flex; flex-direction: column; gap: 8px; }
+.komisi-row { display: flex; align-items: center; gap: 10px; }
+.komisi-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.komisi-name { font-size: 13px; font-weight: 600; flex: 1; }
+.komisi-bar-wrap { width: 80px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.komisi-bar-fill { height: 100%; border-radius: 3px; }
+.komisi-num { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text-3); width: 32px; text-align: right; }
+
+.dash-search-wrap { position: relative; margin-bottom: 12px; }
+.dash-search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
+.dash-search { width: 100%; padding: 12px 14px 12px 42px; border: 2px solid var(--border); background: white; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.2s; }
+.dash-search:focus { border-color: var(--teal); }
+.dash-search::placeholder { color: var(--text-4); }
+
+.member-row { background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.mr-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--teal-light); color: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+.mr-info { flex: 1; min-width: 0; }
+.mr-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mr-komisi { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.mr-rate { text-align: right; flex-shrink: 0; }
+.mr-rate-num { font-size: 15px; font-weight: 800; font-family: 'DM Mono', monospace; }
+.mr-bar { width: 48px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 3px; margin-left: auto; }
+.mr-bar-fill { height: 100%; border-radius: 2px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: white; padding: 12px 20px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 999; opacity: 0; transition: all 0.3s; white-space: nowrap; pointer-events: none; max-width: 90vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok { background: var(--green); }
+.toast.err { background: var(--red); }
+.toast.info { background: var(--teal); }
+
+.empty { text-align: center; padding: 48px 20px; color: var(--text-3); }
+.empty .e-icon { font-size: 48px; margin-bottom: 12px; }
+.empty .e-text { font-size: 14px; font-weight: 600; }
+
+.refresh-btn { display: flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-3); cursor: pointer; margin-bottom: 16px; }
+.refresh-btn:active { background: var(--border); }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Memuat data dari Google Sheets...</div>
+</div>
+
+<!-- TOP NAV -->
+<div class="top-nav">
+  <div class="nav-header">
+    <div class="nav-title">Ibadah <span>2026</span></div>
+    <div class="nav-badge" id="navBadge">—</div>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="setMode('absensi')" id="tabAbsensi">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Absensi
+    </button>
+    <button class="mode-tab" onclick="setMode('dashboard')" id="tabDashboard">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+  </div>
+</div>
+
+<!-- ABSENSI PAGE -->
+<div class="page active" id="pageAbsensi">
+  <div style="margin-top:20px">
+    <div class="section-label">Layanan</div>
+    <div class="service-pills" id="attServicePills"></div>
+  </div>
+  <div class="section-label">Tanggal Ibadah</div>
+  <div class="date-scroll" id="dateScroll"></div>
+  <div class="att-stats">
+    <div class="att-stat hadir"><span class="num" id="attHadirNum">0</span><span class="lbl">Hadir</span></div>
+    <div class="att-stat absen"><span class="num" id="attAbsenNum">0</span><span class="lbl">Belum</span></div>
+    <div class="att-stat total"><span class="num" id="attTotalNum">0</span><span class="lbl">Total</span></div>
+  </div>
+  <div class="filter-scroll" id="komisiFilterAtt"></div>
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" type="search" placeholder="Cari nama jemaat..." id="attSearch" oninput="renderMemberList()">
+  </div>
+  <div class="member-list" id="memberList"></div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div class="page" id="pageDashboard">
+  <div style="margin-top:20px">
+    <button class="refresh-btn" onclick="loadData()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      Refresh dari Google Sheets
+    </button>
+    <div class="section-label">Layanan</div>
+    <div class="service-pills" id="dashServicePills"></div>
+  </div>
+  <div class="stats-2col" id="dashStats"></div>
+  <div class="chart-card">
+    <div class="chart-card-title">Kehadiran per Minggu</div>
+    <div class="bar-chart" id="dashBarChart"></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-card-title">Komisi</div>
+    <div class="komisi-list" id="dashKomisiList"></div>
+  </div>
+  <div class="chart-card" style="margin-bottom:0">
+    <div class="chart-card-title">Cari Anggota</div>
+    <div class="dash-search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="dash-search" type="search" placeholder="Nama jemaat..." id="dashSearch" oninput="renderDashMembers()">
+    </div>
+    <div id="dashMemberList"></div>
+  </div>
+</div>
+
+<div class="submit-bar" id="submitBar">
+  <button class="submit-btn" id="submitBtn" onclick="submitAllPending()">
+    <span id="submitBtnText">Simpan ke Google Sheets</span>
+  </button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx20XyrSj6LiftDKFSYxNF68OGauyV5VKvoFmltQyO-vh6wXi38fQkr4zmIzf5yvlsY/exec";
+const KOMISI_COLORS = {
+  'PENDETA':'#7c3aed','KOMPRI':'#2563eb','KOMWAN':'#db2777','KOOR':'#0891b2',
+  'PENATUA':'#d97706','PEMUDA':'#059669','REMAJA':'#ca8a04','ANAK':'#dc2626',
+  'WANITA':'#9333ea','PRIA':'#0284c7','SENIOR':'#65a30d','YESYURUN':'#b45309',
+  'TIMOTIUS':'#7c3aed','STAFF':'#64748b','LAINNYA':'#6b7280',
+};
+
+let RAW = null;
+let SERVICES = [];
+let currentAttService = 0;
+let currentDashService = 0;
+let currentMode = 'absensi';
+let selectedDate = '';
+let attState = {};
+let pendingChanges = {};
+let attKomisiFilter = '';
+
+// ── FIX DATES ──
+function fixDate(raw) {
+  if (!raw) return null;
+  // Already good format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    const d = new Date(raw + 'T00:00:00');
+    if (!isNaN(d) && d.getFullYear() >= 2020 && d.getFullYear() <= 2030) return raw;
+  }
+  // DD/MM/YYYY or DD/MM/YYYY.
+  const m1 = raw.replace('.','').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+  // Check if it looks like a garbage date (1970, year < 2020, year > 2030)
+  const d = new Date(raw);
+  if (!isNaN(d) && d.getFullYear() >= 2020 && d.getFullYear() <= 2030) {
+    return d.toISOString().slice(0,10);
+  }
+  return null; // invalid
+}
+
+// ── CLEAN DATA ──
+function cleanData(raw) {
+  const result = {};
+  for (const sheetName of Object.keys(raw)) {
+    const sheet = raw[sheetName];
+    // Fix & filter dates
+    const validDates = [];
+    const validIndexes = [];
+    sheet.dates.forEach((d, i) => {
+      const fixed = fixDate(d);
+      if (fixed) { validDates.push(fixed); validIndexes.push(i); }
+    });
+    // Filter members - skip TOTAL/jumlah rows, only valid attendance
+    const members = sheet.members.filter(m => {
+      if (!m.nama || m.nama.trim() === '') return false;
+      if (m.komisi === 'TOTAL') return false;
+      const name = m.nama.toLowerCase().trim();
+      if (name === 'jumlah' || name === 'total') return false;
+      return true;
+    }).map(m => ({
+      ...m,
+      nama: m.nama.trim(),
+      komisi: normalizeKomisi(m.komisi),
+      attendance: validIndexes.map(i => m.attendance[i] || 0)
+    }));
+    result[sheetName] = { dates: validDates, members };
+  }
+  return result;
+}
+
+function normalizeKomisi(k) {
+  if (!k) return 'LAINNYA';
+  k = k.toString().toUpperCase().trim();
+  if (k === '1' || k === '') return 'LAINNYA';
+  if (k.includes('PENDETA')) return 'PENDETA';
+  if (k.includes('KOMPRI')) return 'KOMPRI';
+  if (k.includes('KOMWAN')) return 'KOMWAN';
+  if (k.includes('KOOR') && !k.includes('KOMWAN') && !k.includes('KOMPRI')) return 'KOOR';
+  if (k.includes('PENATUA') || k.includes('PNTW')) return 'PENATUA';
+  if (k.includes('PEMUDA')) return 'PEMUDA';
+  if (k.includes('REMAJA')) return 'REMAJA';
+  if (k.includes('ANAK')) return 'ANAK';
+  if (k.includes('WANITA')) return 'WANITA';
+  if (k.includes('PRIA')) return 'PRIA';
+  if (k.includes('STAFF')) return 'STAFF';
+  if (k.includes('TIMOTIUS')) return 'TIMOTIUS';
+  if (k.includes('YESYURUN')) return 'YESYURUN';
+  return 'LAINNYA';
+}
+
+// ── LOAD DATA via JSONP (bypass CORS untuk file:// lokal) ──
+function loadData() {
+  document.getElementById('loadingScreen').classList.remove('hidden');
+
+  // Hapus script JSONP lama jika ada
+  const old = document.getElementById('jsonp-script');
+  if (old) old.remove();
+
+  // Timeout jika gagal
+  const timer = setTimeout(() => {
+    document.getElementById('loadingScreen').classList.add('hidden');
+    toast('❌ Gagal memuat data. Cek koneksi internet.', 'err', 5000);
+  }, 15000);
+
+  // Callback global yang akan dipanggil Apps Script
+  window._jsonpCallback = function(json) {
+    clearTimeout(timer);
+    try {
+      RAW = cleanData(json);
+      SERVICES = Object.keys(RAW);
+      currentAttService = 0;
+      currentDashService = 0;
+      buildServicePills();
+      initAttPage();
+      document.getElementById('loadingScreen').classList.add('hidden');
+      toast('✅ Data berhasil dimuat dari Google Sheets', 'ok');
+    } catch(e) {
+      document.getElementById('loadingScreen').classList.add('hidden');
+      toast('❌ Error parsing data: ' + e.message, 'err', 5000);
+    }
+  };
+
+  const script = document.createElement('script');
+  script.id = 'jsonp-script';
+  script.src = APPS_SCRIPT_URL + '?callback=_jsonpCallback&t=' + Date.now();
+  script.onerror = () => {
+    clearTimeout(timer);
+    document.getElementById('loadingScreen').classList.add('hidden');
+    toast('❌ Gagal memuat. Cek koneksi internet.', 'err', 5000);
+  };
+  document.body.appendChild(script);
+}
+
+function buildServicePills() {
+  ['attServicePills','dashServicePills'].forEach((id, ctx) => {
+    const el = document.getElementById(id);
+    el.innerHTML = SERVICES.map((s,i) =>
+      `<button class="service-pill ${i===0?'active':''}" onclick="setService(${i},'${ctx===0?'att':'dash'}')" id="${ctx===0?'att':'dash'}Svc${i}">⛪ ${s}</button>`
+    ).join('');
+  });
+}
+
+// ── TOAST ──
+function toast(msg, type='ok', dur=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ── MODE ──
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('pageAbsensi').classList.toggle('active', mode==='absensi');
+  document.getElementById('pageDashboard').classList.toggle('active', mode==='dashboard');
+  document.getElementById('tabAbsensi').classList.toggle('active', mode==='absensi');
+  document.getElementById('tabDashboard').classList.toggle('active', mode==='dashboard');
+  if (mode==='dashboard') renderDashboard();
+}
+
+function setService(idx, ctx) {
+  if (ctx==='att') {
+    currentAttService = idx;
+    SERVICES.forEach((_,i) => {
+      const el = document.getElementById('attSvc'+i);
+      if (el) el.classList.toggle('active', i===idx);
+    });
+    pendingChanges = {};
+    updateSubmitBar();
+    initAttPage();
+  } else {
+    currentDashService = idx;
+    SERVICES.forEach((_,i) => {
+      const el = document.getElementById('dashSvc'+i);
+      if (el) el.classList.toggle('active', i===idx);
+    });
+    renderDashboard();
+  }
+}
+
+// ── ABSENSI ──
+function initAttPage() {
+  if (!RAW) return;
+  const d = RAW[SERVICES[currentAttService]];
+  const dates = d.dates;
+
+  const scroll = document.getElementById('dateScroll');
+  scroll.innerHTML = '';
+  dates.forEach((date, i) => {
+    const dt = new Date(date + 'T00:00:00');
+    const day = dt.getDate();
+    const month = dt.toLocaleDateString('id-ID', {month:'short'});
+    const chip = document.createElement('div');
+    chip.className = 'date-chip' + (i === dates.length-1 ? ' active' : '');
+    chip.innerHTML = `<span class="day">${day}</span><span class="month">${month}</span>`;
+    chip.onclick = () => selectDate(date, chip);
+    scroll.appendChild(chip);
+  });
+  selectedDate = dates[dates.length - 1];
+  loadAttState();
+
+  const allKomisi = [...new Set(d.members.map(m => m.komisi))].sort();
+  const ks = document.getElementById('komisiFilterAtt');
+  ks.innerHTML = '<div class="filter-chip active" onclick="setAttKomisi(\'\',this)">Semua</div>';
+  allKomisi.forEach(k => {
+    ks.innerHTML += `<div class="filter-chip" onclick="setAttKomisi('${k}',this)">${k}</div>`;
+  });
+  attKomisiFilter = '';
+  document.getElementById('attSearch').value = '';
+}
+
+function setAttKomisi(val, el) {
+  attKomisiFilter = val;
+  document.querySelectorAll('#komisiFilterAtt .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderMemberList();
+}
+
+function selectDate(date, chip) {
+  selectedDate = date;
+  document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  pendingChanges = {};
+  updateSubmitBar();
+  loadAttState();
+}
+
+function loadAttState() {
+  const d = RAW[SERVICES[currentAttService]];
+  const dateIdx = d.dates.indexOf(selectedDate);
+  attState = {};
+  d.members.forEach(m => {
+    attState[m.nama] = dateIdx !== -1 ? m.attendance[dateIdx] === 1 : false;
+  });
+  renderMemberList();
+}
+
+function renderMemberList() {
+  if (!RAW) return;
+  const d = RAW[SERVICES[currentAttService]];
+  const q = document.getElementById('attSearch').value.toLowerCase();
+  let members = d.members;
+  if (attKomisiFilter) members = members.filter(m => m.komisi === attKomisiFilter);
+  if (q) members = members.filter(m => m.nama.toLowerCase().includes(q));
+
+  const hadirCount = d.members.filter(m => attState[m.nama]).length;
+  const total = d.members.length;
+  document.getElementById('attHadirNum').textContent = hadirCount;
+  document.getElementById('attAbsenNum').textContent = total - hadirCount;
+  document.getElementById('attTotalNum').textContent = total;
+  document.getElementById('navBadge').textContent = `${hadirCount}/${total}`;
+
+  const list = document.getElementById('memberList');
+  if (!members.length) {
+    list.innerHTML = '<div class="empty"><div class="e-icon">🔍</div><div class="e-text">Tidak ditemukan</div></div>';
+    return;
+  }
+  list.innerHTML = members.map(m => {
+    const isHadir = attState[m.nama];
+    const initials = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+    const safeName = m.nama.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="member-card ${isHadir?'is-hadir':''}" onclick="toggleMember('${safeName}')">
+      <div class="member-avatar">${initials}</div>
+      <div class="member-info">
+        <div class="member-name">${m.nama}</div>
+        <div class="member-komisi">${m.komisi}</div>
+      </div>
+      <button class="toggle-att" tabindex="-1"></button>
+    </div>`;
+  }).join('');
+}
+
+function toggleMember(nama) {
+  attState[nama] = !attState[nama];
+  pendingChanges[nama] = attState[nama];
+  const d = RAW[SERVICES[currentAttService]];
+  const dateIdx = d.dates.indexOf(selectedDate);
+  const member = d.members.find(m => m.nama === nama);
+  if (member && dateIdx !== -1) member.attendance[dateIdx] = attState[nama] ? 1 : 0;
+  updateSubmitBar();
+  renderMemberList();
+}
+
+function updateSubmitBar() {
+  const n = Object.keys(pendingChanges).length;
+  const bar = document.getElementById('submitBar');
+  bar.classList.toggle('visible', n > 0);
+  document.getElementById('submitBtnText').textContent =
+    n > 0 ? `💾 Simpan ${n} perubahan ke Sheets` : '';
+}
+
+async function submitAllPending() {
+  const keys = Object.keys(pendingChanges);
+  if (!keys.length) return;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  document.getElementById('submitBtnText').textContent = '⏳ Menyimpan...';
+  toast(`Mengirim ${keys.length} data...`, 'info', 8000);
+  const sheetName = SERVICES[currentAttService];
+  let ok = 0, fail = 0;
+  for (const nama of keys) {
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ nama, tanggal: selectedDate, hadir: pendingChanges[nama], sheetName })
+      });
+      ok++;
+    } catch { fail++; }
+  }
+  btn.disabled = false;
+  pendingChanges = {};
+  updateSubmitBar();
+  if (fail === 0) toast(`✅ ${ok} data dikirim ke Google Sheets!`, 'ok', 3000);
+  else toast(`⚠️ ${ok} terkirim, ${fail} gagal`, 'err', 4000);
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  if (!RAW) return;
+  const d = RAW[SERVICES[currentDashService]];
+  const {members, dates} = d;
+  const totals = dates.map((_,di) => members.reduce((s,m) => s + m.attendance[di], 0));
+  const avgAtt = Math.round(totals.reduce((a,b)=>a+b,0)/dates.length);
+  const allAtt = members.reduce((s,m) => s + m.attendance.reduce((a,b)=>a+b,0), 0);
+  const rate = Math.round(allAtt / (members.length * dates.length) * 100);
+  document.getElementById('navBadge').textContent = rate + '%';
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-tile"><div class="st-label">Jemaat</div><div class="st-val">${members.length}</div><div class="st-sub">terdaftar</div></div>
+    <div class="stat-tile"><div class="st-label">Avg Hadir</div><div class="st-val">${avgAtt}</div><div class="st-sub">per minggu</div></div>
+    <div class="stat-tile"><div class="st-label">Kehadiran</div><div class="st-val">${rate}%</div><div class="st-sub">keseluruhan</div></div>
+    <div class="stat-tile"><div class="st-label">Minggu Ini</div><div class="st-val">${totals[totals.length-1]}</div><div class="st-sub">hadir</div></div>`;
+  const maxT = Math.max(...totals);
+  document.getElementById('dashBarChart').innerHTML = dates.map((date, di) => {
+    const lbl = new Date(date+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit'});
+    const pct = Math.round(totals[di]/maxT*100);
+    return `<div class="bar-col"><div class="bar-wrap"><div class="bar" style="height:${pct}%"></div></div><div class="bar-lbl">${lbl}</div></div>`;
+  }).join('');
+  const kc = {};
+  members.forEach(m => kc[m.komisi] = (kc[m.komisi]||0)+1);
+  const ke = Object.entries(kc).sort((a,b)=>b[1]-a[1]);
+  const maxK = ke[0][1];
+  document.getElementById('dashKomisiList').innerHTML = ke.map(([k,n]) => {
+    const color = KOMISI_COLORS[k]||'#6b7280';
+    return `<div class="komisi-row">
+      <div class="komisi-dot" style="background:${color}"></div>
+      <div class="komisi-name">${k}</div>
+      <div class="komisi-bar-wrap"><div class="komisi-bar-fill" style="width:${Math.round(n/maxK*100)}%;background:${color}"></div></div>
+      <div class="komisi-num">${n}</div>
+    </div>`;
+  }).join('');
+  renderDashMembers();
+}
+
+function renderDashMembers() {
+  if (!RAW) return;
+  const d = RAW[SERVICES[currentDashService]];
+  const q = document.getElementById('dashSearch').value.toLowerCase();
+  let members = q ? d.members.filter(m => m.nama.toLowerCase().includes(q)) : d.members.slice(0,10);
+  document.getElementById('dashMemberList').innerHTML = members.slice(0,50).map(m => {
+    const total = m.attendance.reduce((a,b)=>a+b,0);
+    const rate = Math.round(total/d.dates.length*100);
+    const color = rate>=80?'#10b981':rate>=50?'#f59e0b':'#ef4444';
+    const initials = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+    return `<div class="member-row">
+      <div class="mr-avatar">${initials}</div>
+      <div class="mr-info"><div class="mr-name">${m.nama}</div><div class="mr-komisi">${m.komisi}</div></div>
+      <div class="mr-rate">
+        <div class="mr-rate-num" style="color:${color}">${rate}%</div>
+        <div class="mr-bar"><div class="mr-bar-fill" style="width:${rate}%;background:${color}"></div></div>
+      </div>
+    </div>`;
+  }).join('') + (!q && d.members.length>10 ? `<div style="text-align:center;padding:12px;font-size:13px;color:var(--text-3)">Ketik nama untuk cari anggota lainnya</div>` : '');
+}
+
+// ── INIT ──
+loadData();
+</script>
+</body>
+</html>
