@@ -2,473 +2,1420 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Absensi Ibadah 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPBSI — Absensi Ibadah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #f5f4f0; --surface: #fff; --card: #fff;
-  --border: #e8e5df; --border2: #d4d0c8;
-  --teal: #0d7377; --teal-light: #e8f5f5; --teal-mid: #14a085;
-  --amber: #f59e0b; --red: #ef4444; --red-light: #fee2e2;
-  --green: #10b981; --green-light: #d1fae5;
-  --text: #1a1a1a; --text-2: #4a4a4a; --text-3: #8a8a8a; --text-4: #b8b5ae;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
-  --radius: 16px; --radius-sm: 10px;
+  --teal:      #0d9488;
+  --teal-d:    #0f766e;
+  --teal-l:    #ccfbf1;
+  --teal-xl:   #f0fdfa;
+  --red:       #ef4444;
+  --red-l:     #fee2e2;
+  --amber:     #f59e0b;
+  --amber-l:   #fef3c7;
+  --blue:      #3b82f6;
+  --blue-l:    #dbeafe;
+  --purple:    #8b5cf6;
+  --purple-l:  #ede9fe;
+  --green:     #10b981;
+  --green-l:   #d1fae5;
+  --ink:       #0f1923;
+  --ink-2:     #374151;
+  --ink-3:     #6b7280;
+  --ink-4:     #9ca3af;
+  --border:    #e5e7eb;
+  --bg:        #f8fafc;
+  --card:      #ffffff;
+  --radius:    16px;
+  --radius-sm: 10px;
+  --shadow:    0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+  --font:      'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono:      'DM Mono', 'Courier New', monospace;
 }
+
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg); color: var(--text); font-family: 'Nunito', sans-serif; min-height: 100vh; max-width: 480px; margin: 0 auto; }
-
-/* LOADING SCREEN */
-.loading-screen {
-  position: fixed; inset: 0; background: var(--bg);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 999; gap: 16px;
+html { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100%;
+  overscroll-behavior: none;
 }
-.loading-screen.hidden { display: none; }
-.loading-spinner {
-  width: 48px; height: 48px;
-  border: 4px solid var(--border);
-  border-top-color: var(--teal);
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── PIN SCREEN ── */
+#pinScreen {
+  background: linear-gradient(145deg, #0f1923 0%, #0d3d35 60%, #0d9488 100%);
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.pin-logo {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.pin-logo-icon {
+  width: 72px; height: 72px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 16px;
+  backdrop-filter: blur(8px);
+}
+.pin-logo h1 {
+  font-size: 28px; font-weight: 900;
+  color: white; letter-spacing: -0.5px;
+}
+.pin-logo p {
+  font-size: 14px; color: rgba(255,255,255,.5);
+  margin-top: 4px;
+}
+.pin-card {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 24px;
+  padding: 32px 28px;
+  width: 100%; max-width: 340px;
+  backdrop-filter: blur(12px);
+}
+.pin-label {
+  font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  text-align: center; margin-bottom: 20px;
+}
+.pin-dots {
+  display: flex; gap: 12px;
+  justify-content: center; margin-bottom: 32px;
+}
+.pin-dot {
+  width: 14px; height: 14px;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  border: 2px solid rgba(255,255,255,.3);
+  transition: all .2s;
 }
-.loading-text { font-size: 14px; font-weight: 600; color: var(--text-3); }
-@keyframes spin { to { transform: rotate(360deg); } }
+.pin-dot.filled {
+  background: var(--teal);
+  border-color: var(--teal);
+  transform: scale(1.1);
+}
+.pin-dot.error {
+  background: var(--red);
+  border-color: var(--red);
+}
+.pin-keypad {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.pin-key {
+  height: 56px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  font-size: 20px; font-weight: 700;
+  color: white;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+  user-select: none;
+}
+.pin-key:active { transform: scale(.94); background: rgba(255,255,255,.15); }
+.pin-key.del { font-size: 18px; }
+.pin-key.empty { background: transparent; border-color: transparent; pointer-events: none; }
+.pin-error {
+  font-size: 13px; color: #fca5a5;
+  text-align: center; margin-top: 16px; min-height: 20px;
+}
 
-/* TOP NAV */
-.top-nav {
+/* ── MAIN APP ── */
+#appScreen { background: var(--bg); }
+
+/* NAV */
+.nav {
+  background: var(--ink);
+  padding: 0 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
   position: sticky; top: 0; z-index: 100;
-  background: rgba(245,244,240,0.95); backdrop-filter: blur(12px);
-  padding: 16px 20px 0; border-bottom: 1px solid var(--border);
 }
-.nav-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.nav-title { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
-.nav-title span { color: var(--teal); }
-.nav-badge { background: var(--teal); color: white; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-family: 'DM Mono', monospace; }
-.mode-tabs { display: flex; gap: 4px; background: var(--border); border-radius: 12px; padding: 4px; margin-bottom: -1px; }
-.mode-tab { flex: 1; padding: 10px 0; border: none; background: transparent; border-radius: 9px; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-3); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-.mode-tab.active { background: white; color: var(--teal); box-shadow: var(--shadow); }
+.nav-brand {
+  font-size: 16px; font-weight: 900; color: white;
+  letter-spacing: -.3px;
+  flex-shrink: 0;
+}
+.nav-brand span { color: var(--teal); }
+.nav-badge {
+  background: var(--teal);
+  color: white;
+  font-size: 11px; font-weight: 700;
+  font-family: var(--mono);
+  padding: 3px 8px; border-radius: 20px;
+  min-width: 48px; text-align: center;
+  flex-shrink: 0;
+}
+.nav-tabs {
+  display: flex; gap: 2px;
+  background: rgba(255,255,255,.08);
+  border-radius: 10px;
+  padding: 3px;
+}
+.nav-tab {
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,.5);
+  cursor: pointer; transition: all .2s;
+  white-space: nowrap;
+}
+.nav-tab.active {
+  background: var(--teal);
+  color: white;
+}
 
-/* PAGES */
-.page { display: none; padding: 20px; padding-bottom: 100px; }
+/* ── PAGES ── */
+.page { display: none; flex: 1; }
 .page.active { display: block; }
 
-.section-label { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+/* ── ABSENSI PAGE ── */
+.att-header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  position: sticky; top: 60px; z-index: 90;
+}
+.service-tabs {
+  display: flex; gap: 8px; margin-bottom: 14px;
+}
+.service-tab {
+  flex: 1; height: 38px;
+  border-radius: 10px;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--bg);
+  color: var(--ink-3);
+  border: 1.5px solid var(--border);
+}
+.service-tab.active {
+  background: var(--teal);
+  color: white; border-color: var(--teal);
+}
+.date-banner {
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-d) 100%);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.date-banner-left { flex: 1; }
+.date-banner-label {
+  font-size: 11px; color: rgba(255,255,255,.6);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 3px;
+}
+.date-banner-val {
+  font-size: 16px; font-weight: 800; color: white;
+}
+.date-picker-btn {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,.7);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 8px; padding: 5px 10px;
+  cursor: pointer; white-space: nowrap;
+  transition: all .2s;
+}
+.date-picker-btn:active { background: rgba(255,255,255,.15); }
+.date-scroll-wrap {
+  display: none;
+  overflow-x: auto; white-space: nowrap;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+.date-scroll-wrap::-webkit-scrollbar { display: none; }
+.date-chip {
+  display: inline-flex; flex-direction: column;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  margin-right: 6px;
+  transition: all .2s;
+}
+.date-chip .day { font-size: 18px; font-weight: 800; font-family: var(--mono); line-height: 1; }
+.date-chip .mon { font-size: 10px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; margin-top: 2px; }
+.date-chip.active { background: var(--teal); border-color: var(--teal); color: white; }
+.date-chip.active .mon { color: rgba(255,255,255,.7); }
 
-/* SERVICE + DATE */
-.service-pills { display: flex; gap: 8px; margin-bottom: 20px; }
-.service-pill { flex: 1; padding: 12px; border: 2px solid var(--border); background: white; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-2); cursor: pointer; transition: all 0.2s; text-align: center; }
-.service-pill.active { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+/* Stats bar */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+}
+.stat-box {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+}
+.stat-num {
+  font-size: 22px; font-weight: 900;
+  font-family: var(--mono); line-height: 1;
+}
+.stat-num.hadir { color: var(--green); }
+.stat-num.absen { color: var(--red); }
+.stat-num.total { color: var(--ink-2); }
+.stat-label { font-size: 10px; font-weight: 600; color: var(--ink-4); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
 
-.date-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 20px; scrollbar-width: none; }
-.date-scroll::-webkit-scrollbar { display: none; }
-.date-chip { flex-shrink: 0; padding: 10px 14px; border: 2px solid var(--border); background: white; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; text-align: center; min-width: 64px; }
-.date-chip .day { font-size: 18px; font-weight: 800; color: var(--text); display: block; }
-.date-chip .month { font-size: 11px; font-weight: 600; color: var(--text-3); display: block; }
-.date-chip.active { border-color: var(--teal); background: var(--teal); }
-.date-chip.active .day, .date-chip.active .month { color: white; }
-
-/* STATS BAR */
-.att-stats { display: flex; gap: 8px; margin-bottom: 16px; }
-.att-stat { flex: 1; background: white; border-radius: var(--radius-sm); padding: 12px; text-align: center; border: 1px solid var(--border); }
-.att-stat .num { font-size: 22px; font-weight: 900; font-family: 'DM Mono', monospace; display: block; }
-.att-stat .lbl { font-size: 11px; font-weight: 600; color: var(--text-3); }
-.att-stat.hadir .num { color: var(--green); }
-.att-stat.absen .num { color: var(--red); }
-.att-stat.total .num { color: var(--teal); }
-
-/* FILTER + SEARCH */
-.filter-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; scrollbar-width: none; }
+/* Filter bar */
+.filter-bar {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  position: sticky; z-index: 89;
+}
+.filter-scroll {
+  display: flex; gap: 6px;
+  overflow-x: auto; white-space: nowrap;
+  scrollbar-width: none;
+  margin-bottom: 10px;
+}
 .filter-scroll::-webkit-scrollbar { display: none; }
-.filter-chip { flex-shrink: 0; padding: 6px 12px; border: 1.5px solid var(--border); background: white; border-radius: 20px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-2); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-.filter-chip.active { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+.filter-chip {
+  display: inline-flex; align-items: center;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  background: var(--bg);
+  color: var(--ink-3);
+  border: 1.5px solid var(--border);
+  cursor: pointer; transition: all .2s;
+  white-space: nowrap;
+}
+.filter-chip.active {
+  background: var(--ink);
+  color: white; border-color: var(--ink);
+}
+.search-box { position: relative; }
+.search-box input {
+  width: 100%; height: 38px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0 12px 0 36px;
+  font-size: 14px; font-family: var(--font);
+  background: var(--bg); color: var(--ink);
+  outline: none;
+  transition: border-color .2s;
+}
+.search-box input:focus { border-color: var(--teal); }
+.search-box::before {
+  content: '🔍';
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px; pointer-events: none;
+}
 
-.search-wrap { position: relative; margin-bottom: 12px; }
-.search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
-.search-input { width: 100%; padding: 13px 14px 13px 42px; border: 2px solid var(--border); background: white; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 15px; color: var(--text); outline: none; transition: border-color 0.2s; }
-.search-input:focus { border-color: var(--teal); }
-.search-input::placeholder { color: var(--text-4); }
+/* Member list */
+.member-list { padding: 12px 16px 100px; }
+.member-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 12px;
+  border: 1.5px solid var(--border);
+  transition: all .2s;
+  position: relative;
+}
+.member-card.is-hadir {
+  background: var(--teal-xl);
+  border-color: var(--teal-l);
+}
+.member-card.is-absen-alasan {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+.member-card.alert-absen {
+  border-color: var(--red);
+  border-left: 4px solid var(--red);
+}
+.member-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--teal);
+  color: white;
+  font-size: 14px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; cursor: pointer;
+  transition: transform .2s;
+}
+.member-avatar:active { transform: scale(.92); }
+.member-card.is-hadir .member-avatar { background: var(--teal-d); }
+.member-info { flex: 1; min-width: 0; cursor: pointer; }
+.member-name {
+  font-size: 15px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.member-meta {
+  font-size: 12px; color: var(--ink-3);
+  margin-top: 2px; display: flex; align-items: center; gap: 6px;
+}
+.member-rate { font-weight: 700; font-family: var(--mono); }
+.birthday-badge { font-size: 13px; }
+.absen-streak {
+  font-size: 11px; font-weight: 700;
+  color: var(--red);
+  background: var(--red-l);
+  padding: 2px 6px; border-radius: 6px;
+}
+.status-badge {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 6px;
+}
+.status-badge.kuliah { background: var(--blue-l); color: var(--blue); }
+.status-badge.nonaktif { background: var(--amber-l); color: var(--amber); }
+.status-badge.meninggal { background: var(--ink-4); color: white; }
 
-/* MEMBER LIST */
-.member-list { display: flex; flex-direction: column; gap: 8px; }
-.member-card { background: white; border: 2px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: all 0.15s; cursor: pointer; user-select: none; }
-.member-card:active { transform: scale(0.98); }
-.member-card.is-hadir { border-color: var(--green); background: var(--green-light); }
-.member-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0; transition: all 0.2s; }
-.member-card.is-hadir .member-avatar { background: var(--green); color: white; }
-.member-card:not(.is-hadir) .member-avatar { background: var(--border); color: var(--text-3); }
-.member-info { flex: 1; min-width: 0; }
-.member-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.member-komisi { font-size: 12px; font-weight: 600; color: var(--text-3); margin-top: 1px; }
-.toggle-att { width: 44px; height: 26px; border-radius: 13px; border: none; cursor: pointer; position: relative; transition: all 0.25s; flex-shrink: 0; }
-.toggle-att::after { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: white; top: 3px; transition: all 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-.member-card:not(.is-hadir) .toggle-att { background: var(--border2); }
-.member-card:not(.is-hadir) .toggle-att::after { left: 3px; }
-.member-card.is-hadir .toggle-att { background: var(--green); }
-.member-card.is-hadir .toggle-att::after { left: 21px; }
+/* Toggle */
+.toggle-wrap { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.toggle {
+  width: 50px; height: 28px;
+  border-radius: 14px;
+  background: var(--border);
+  position: relative; cursor: pointer;
+  transition: background .2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--teal); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 22px; height: 22px;
+  background: white;
+  border-radius: 50%;
+  top: 3px; left: 3px;
+  transition: transform .2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+.toggle.on::after { transform: translateX(22px); }
+.alasan-tag {
+  font-size: 10px; font-weight: 700;
+  color: var(--amber);
+  background: var(--amber-l);
+  padding: 2px 6px; border-radius: 6px;
+  max-width: 60px; text-align: center;
+  white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-/* SUBMIT BAR */
-.submit-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 16px 20px; background: white; border-top: 1px solid var(--border); z-index: 50; display: none; }
-.submit-bar.visible { display: block; }
-.submit-btn { width: 100%; padding: 16px; background: var(--teal); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
-.submit-btn:active { transform: scale(0.98); }
-.submit-btn:disabled { opacity: 0.5; }
+/* Submit bar */
+.submit-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px 20px;
+  z-index: 99;
+  display: none;
+}
+.submit-btn {
+  width: 100%; height: 52px;
+  background: var(--teal);
+  color: white;
+  border-radius: 14px;
+  font-size: 15px; font-weight: 800;
+  font-family: var(--font);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  border: none;
+  transition: all .2s;
+}
+.submit-btn:active { transform: scale(.98); background: var(--teal-d); }
+.submit-btn:disabled { background: var(--ink-4); cursor: not-allowed; }
 
-/* DASHBOARD */
-.stats-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-.stat-tile { background: white; border-radius: var(--radius); padding: 18px; border: 1px solid var(--border); }
-.stat-tile .st-label { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-.stat-tile .st-val { font-size: 32px; font-weight: 900; font-family: 'DM Mono', monospace; line-height: 1; }
-.stat-tile .st-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
-.stat-tile:nth-child(1) .st-val { color: var(--teal); }
-.stat-tile:nth-child(2) .st-val { color: var(--green); }
-.stat-tile:nth-child(3) .st-val { color: var(--amber); }
-.stat-tile:nth-child(4) .st-val { color: var(--red); }
+/* Empty state */
+.empty { text-align: center; padding: 60px 20px; }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-text { font-size: 15px; color: var(--ink-3); font-weight: 600; }
 
-.chart-card { background: white; border-radius: var(--radius); padding: 18px; border: 1px solid var(--border); margin-bottom: 16px; }
-.chart-card-title { font-size: 13px; font-weight: 800; color: var(--text-2); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
-.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; }
-.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; }
-.bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; }
-.bar { width: 100%; border-radius: 5px 5px 0 0; background: linear-gradient(180deg, var(--teal), #0a5a5d); min-height: 4px; transition: height 0.5s cubic-bezier(.4,0,.2,1); }
-.bar-lbl { font-size: 9px; color: var(--text-3); font-family: 'DM Mono', monospace; }
+/* ── DASHBOARD PAGE ── */
+.dash-content { padding: 16px; }
+.dash-section-title {
+  font-size: 12px; font-weight: 800;
+  color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  margin: 20px 0 10px;
+}
+.stats-grid {
+  display: grid; grid-template-columns: repeat(2,1fr);
+  gap: 10px; margin-bottom: 4px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+.stat-card-num {
+  font-size: 32px; font-weight: 900;
+  font-family: var(--mono); line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-card-label { font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.stat-card-sub { font-size: 11px; color: var(--ink-4); margin-top: 2px; }
 
+/* Alert cards */
+.alert-list { display: flex; flex-direction: column; gap: 8px; }
+.alert-card {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  border-left: 4px solid var(--red);
+  display: flex; align-items: center; gap: 12px;
+}
+.alert-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--red-l);
+  color: var(--red);
+  font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.alert-info { flex: 1; min-width: 0; }
+.alert-name { font-size: 14px; font-weight: 700; }
+.alert-detail { font-size: 12px; color: var(--red); font-weight: 600; margin-top: 2px; }
+.alert-wa {
+  width: 36px; height: 36px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+/* Birthday list */
+.bday-list { display: flex; flex-direction: column; gap: 8px; }
+.bday-card {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  border-left: 4px solid var(--purple);
+  display: flex; align-items: center; gap: 12px;
+}
+.bday-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--purple-l);
+  color: var(--purple);
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.bday-name { font-size: 14px; font-weight: 700; }
+.bday-komisi { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+
+/* Chart */
+.chart-wrap {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  border: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.chart-bars {
+  display: flex; align-items: flex-end;
+  gap: 6px; height: 100px;
+  margin-top: 12px;
+}
+.chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.chart-bar {
+  width: 100%; border-radius: 6px 6px 0 0;
+  background: var(--teal-l);
+  transition: height .5s cubic-bezier(.4,0,.2,1);
+  min-height: 4px;
+  position: relative;
+}
+.chart-bar.latest { background: var(--teal); }
+.chart-bar-label { font-size: 9px; font-weight: 600; color: var(--ink-4); text-align: center; white-space: nowrap; }
+.chart-bar-val { font-size: 10px; font-weight: 800; font-family: var(--mono); color: var(--ink-2); text-align: center; }
+
+/* Komisi breakdown */
 .komisi-list { display: flex; flex-direction: column; gap: 8px; }
 .komisi-row { display: flex; align-items: center; gap: 10px; }
-.komisi-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.komisi-name { font-size: 13px; font-weight: 600; flex: 1; }
-.komisi-bar-wrap { width: 80px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-.komisi-bar-fill { height: 100%; border-radius: 3px; }
-.komisi-num { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text-3); width: 32px; text-align: right; }
+.komisi-name { font-size: 13px; font-weight: 700; min-width: 80px; }
+.komisi-bar-wrap { flex: 1; background: var(--bg); border-radius: 4px; height: 8px; overflow: hidden; }
+.komisi-bar { height: 100%; border-radius: 4px; background: var(--teal); }
+.komisi-count { font-size: 12px; font-weight: 700; font-family: var(--mono); color: var(--ink-3); min-width: 30px; text-align: right; }
 
-.dash-search-wrap { position: relative; margin-bottom: 12px; }
-.dash-search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
-.dash-search { width: 100%; padding: 12px 14px 12px 42px; border: 2px solid var(--border); background: white; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.2s; }
-.dash-search:focus { border-color: var(--teal); }
-.dash-search::placeholder { color: var(--text-4); }
+/* ── REPORT PAGE ── */
+.report-content { padding: 16px; padding-bottom: 40px; }
+.report-date-selector {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.report-date-selector label {
+  font-size: 12px; font-weight: 700; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 1px;
+  display: block; margin-bottom: 8px;
+}
+.report-date-selector select {
+  width: 100%; height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px; font-family: var(--font);
+  color: var(--ink); background: var(--bg);
+  outline: none; appearance: none;
+}
+.report-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.report-card-header {
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.report-card-header:active { background: var(--bg); }
+.report-card-title {
+  font-size: 14px; font-weight: 800;
+  display: flex; align-items: center; gap: 8px;
+}
+.report-card-badge {
+  font-size: 12px; font-weight: 800;
+  font-family: var(--mono);
+  padding: 2px 10px; border-radius: 20px;
+}
+.report-card-body {
+  display: none;
+  padding: 0 16px 16px;
+}
+.report-card.open .report-card-body { display: block; }
+.report-card-chevron {
+  transition: transform .2s;
+  font-size: 14px; color: var(--ink-4);
+}
+.report-card.open .report-card-chevron { transform: rotate(180deg); }
+.report-member-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bg);
+}
+.report-member-row:last-child { border-bottom: none; }
+.report-member-num {
+  font-size: 11px; font-weight: 700; font-family: var(--mono);
+  color: var(--ink-4); min-width: 24px;
+}
+.report-member-name { font-size: 13px; font-weight: 600; flex: 1; }
+.report-member-komisi { font-size: 11px; color: var(--ink-3); font-weight: 600; }
+.report-summary-grid {
+  display: grid; grid-template-columns: repeat(2,1fr);
+  gap: 10px; margin-bottom: 16px;
+}
+.report-summary-card {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+}
+.report-summary-num {
+  font-size: 28px; font-weight: 900;
+  font-family: var(--mono); line-height: 1;
+}
+.report-summary-label {
+  font-size: 11px; font-weight: 600;
+  color: var(--ink-3); margin-top: 4px;
+}
+.report-summary-sub {
+  font-size: 10px; color: var(--ink-4); margin-top: 2px;
+}
 
-.member-row { background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-.mr-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--teal-light); color: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
-.mr-info { flex: 1; min-width: 0; }
-.mr-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mr-komisi { font-size: 11px; color: var(--text-3); margin-top: 1px; }
-.mr-rate { text-align: right; flex-shrink: 0; }
-.mr-rate-num { font-size: 15px; font-weight: 800; font-family: 'DM Mono', monospace; }
-.mr-bar { width: 48px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 3px; margin-left: auto; }
-.mr-bar-fill { height: 100%; border-radius: 2px; }
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--card);
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 0 0 40px;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-handle {
+  width: 40px; height: 4px;
+  background: var(--border); border-radius: 2px;
+  margin: 12px auto 0;
+}
+.modal-body { padding: 20px 20px 0; }
 
-/* TOAST */
-.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: white; padding: 12px 20px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 999; opacity: 0; transition: all 0.3s; white-space: nowrap; pointer-events: none; max-width: 90vw; text-align: center; }
+/* Alasan modal */
+.alasan-options {
+  display: grid; grid-template-columns: repeat(2,1fr);
+  gap: 8px; margin-top: 16px;
+}
+.alasan-opt {
+  padding: 14px 12px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  text-align: center; cursor: pointer;
+  transition: all .2s;
+}
+.alasan-opt.selected {
+  border-color: var(--amber);
+  background: var(--amber-l);
+}
+.alasan-opt-icon { font-size: 24px; margin-bottom: 6px; }
+.alasan-opt-label { font-size: 13px; font-weight: 700; }
+.alasan-confirm-btn {
+  width: 100%; height: 48px;
+  background: var(--teal); color: white;
+  border-radius: 12px; border: none;
+  font-size: 15px; font-weight: 800;
+  font-family: var(--font);
+  cursor: pointer; margin-top: 16px;
+  transition: all .2s;
+}
+.alasan-confirm-btn:active { transform: scale(.98); }
+
+/* Member detail modal */
+.member-detail-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.member-detail-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--teal); color: white;
+  font-size: 20px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.member-detail-name { font-size: 18px; font-weight: 800; }
+.member-detail-komisi { font-size: 13px; color: var(--ink-3); margin-top: 3px; }
+.member-stats-row {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 8px; margin-bottom: 20px;
+}
+.member-stat { background: var(--bg); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.member-stat-num { font-size: 24px; font-weight: 900; font-family: var(--mono); line-height: 1; }
+.member-stat-label { font-size: 10px; font-weight: 600; color: var(--ink-4); margin-top: 3px; }
+.history-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--bg); }
+.history-date { font-size: 13px; color: var(--ink-2); }
+.history-badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.history-badge.hadir { background: var(--green-l); color: var(--green); }
+.history-badge.absen { background: var(--red-l); color: var(--red); }
+.history-badge.absen-alasan { background: var(--amber-l); color: var(--amber); }
+.wa-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; height: 48px;
+  background: #25D366; color: white;
+  border-radius: 12px;
+  font-size: 15px; font-weight: 800;
+  text-decoration: none;
+  margin-top: 16px;
+}
+
+/* Add tanggal / jemaat modal */
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 0 14px;
+  font-size: 14px; font-family: var(--font);
+  color: var(--ink); background: var(--bg);
+  outline: none; transition: border-color .2s;
+}
+.form-input:focus { border-color: var(--teal); }
+.form-select {
+  width: 100%; height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 0 14px;
+  font-size: 14px; font-family: var(--font);
+  color: var(--ink); background: var(--bg);
+  outline: none; appearance: none;
+}
+.form-btn {
+  width: 100%; height: 48px;
+  background: var(--teal); color: white;
+  border-radius: 12px; border: none;
+  font-size: 15px; font-weight: 800;
+  font-family: var(--font);
+  cursor: pointer; margin-top: 8px;
+  transition: all .2s;
+}
+.form-btn:active { transform: scale(.98); }
+.form-btn:disabled { background: var(--ink-4); }
+
+/* FAB */
+.fab {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 52px; height: 52px;
+  background: var(--ink);
+  color: white; border-radius: 50%;
+  font-size: 24px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer; z-index: 95;
+  transition: all .2s;
+}
+.fab:active { transform: scale(.92); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: white;
+  padding: 10px 20px; border-radius: 20px;
+  font-size: 13px; font-weight: 700;
+  white-space: nowrap;
+  opacity: 0; transition: all .3s;
+  z-index: 300; pointer-events: none;
+}
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast.ok { background: var(--green); }
-.toast.err { background: var(--red); }
-.toast.info { background: var(--teal); }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
 
-.empty { text-align: center; padding: 48px 20px; color: var(--text-3); }
-.empty .e-icon { font-size: 48px; margin-bottom: 12px; }
-.empty .e-text { font-size: 14px; font-weight: 600; }
+/* Loading */
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(255,255,255,.9);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 500;
+  flex-direction: column; gap: 12px;
+}
+.loading-overlay.show { display: flex; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--teal-l);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; font-weight: 600; color: var(--ink-3); }
 
-.refresh-btn { display: flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-3); cursor: pointer; margin-bottom: 16px; }
-.refresh-btn:active { background: var(--border); }
+/* Responsive */
+@media (min-width: 640px) {
+  .member-list { padding: 16px 20px 100px; }
+  .stats-grid { grid-template-columns: repeat(4,1fr); }
+  .report-summary-grid { grid-template-columns: repeat(4,1fr); }
+}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div class="loading-screen" id="loadingScreen">
-  <div class="loading-spinner"></div>
-  <div class="loading-text">Memuat data dari Google Sheets...</div>
-</div>
-
-<!-- TOP NAV -->
-<div class="top-nav">
-  <div class="nav-header">
-    <div class="nav-title">Ibadah <span>2026</span></div>
-    <div class="nav-badge" id="navBadge">—</div>
+<!-- PIN SCREEN -->
+<div id="pinScreen" class="screen active">
+  <div class="pin-logo">
+    <div class="pin-logo-icon">⛪</div>
+    <h1>GPBSI</h1>
+    <p>Sistem Absensi Ibadah 2026</p>
   </div>
-  <div class="mode-tabs">
-    <button class="mode-tab active" onclick="setMode('absensi')" id="tabAbsensi">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      Absensi
-    </button>
-    <button class="mode-tab" onclick="setMode('dashboard')" id="tabDashboard">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Dashboard
-    </button>
-  </div>
-</div>
-
-<!-- ABSENSI PAGE -->
-<div class="page active" id="pageAbsensi">
-  <div style="margin-top:20px">
-    <div class="section-label">Layanan</div>
-    <div class="service-pills" id="attServicePills"></div>
-  </div>
-  <div class="section-label">Tanggal Ibadah</div>
-  <div class="date-scroll" id="dateScroll"></div>
-  <div class="att-stats">
-    <div class="att-stat hadir"><span class="num" id="attHadirNum">0</span><span class="lbl">Hadir</span></div>
-    <div class="att-stat absen"><span class="num" id="attAbsenNum">0</span><span class="lbl">Belum</span></div>
-    <div class="att-stat total"><span class="num" id="attTotalNum">0</span><span class="lbl">Total</span></div>
-  </div>
-  <div class="filter-scroll" id="komisiFilterAtt"></div>
-  <div class="search-wrap">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="search-input" type="search" placeholder="Cari nama jemaat..." id="attSearch" oninput="renderMemberList()">
-  </div>
-  <div class="member-list" id="memberList"></div>
-</div>
-
-<!-- DASHBOARD PAGE -->
-<div class="page" id="pageDashboard">
-  <div style="margin-top:20px">
-    <button class="refresh-btn" onclick="loadData()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-      Refresh dari Google Sheets
-    </button>
-    <div class="section-label">Layanan</div>
-    <div class="service-pills" id="dashServicePills"></div>
-  </div>
-  <div class="stats-2col" id="dashStats"></div>
-  <div class="chart-card">
-    <div class="chart-card-title">Kehadiran per Minggu</div>
-    <div class="bar-chart" id="dashBarChart"></div>
-  </div>
-  <div class="chart-card">
-    <div class="chart-card-title">Komisi</div>
-    <div class="komisi-list" id="dashKomisiList"></div>
-  </div>
-  <div class="chart-card" style="margin-bottom:0">
-    <div class="chart-card-title">Cari Anggota</div>
-    <div class="dash-search-wrap">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input class="dash-search" type="search" placeholder="Nama jemaat..." id="dashSearch" oninput="renderDashMembers()">
+  <div class="pin-card">
+    <div class="pin-label">Masukkan PIN</div>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
     </div>
-    <div id="dashMemberList"></div>
+    <div class="pin-keypad">
+      <div class="pin-key" onclick="pinInput('1')">1</div>
+      <div class="pin-key" onclick="pinInput('2')">2</div>
+      <div class="pin-key" onclick="pinInput('3')">3</div>
+      <div class="pin-key" onclick="pinInput('4')">4</div>
+      <div class="pin-key" onclick="pinInput('5')">5</div>
+      <div class="pin-key" onclick="pinInput('6')">6</div>
+      <div class="pin-key" onclick="pinInput('7')">7</div>
+      <div class="pin-key" onclick="pinInput('8')">8</div>
+      <div class="pin-key" onclick="pinInput('9')">9</div>
+      <div class="pin-key empty"></div>
+      <div class="pin-key" onclick="pinInput('0')">0</div>
+      <div class="pin-key del" onclick="pinDel()">⌫</div>
+    </div>
+    <div class="pin-error" id="pinError"></div>
   </div>
 </div>
 
-<div class="submit-bar" id="submitBar">
-  <button class="submit-btn" id="submitBtn" onclick="submitAllPending()">
-    <span id="submitBtnText">Simpan ke Google Sheets</span>
-  </button>
+<!-- APP SCREEN -->
+<div id="appScreen" class="screen">
+  <nav class="nav">
+    <div class="nav-brand">GP<span>BSI</span></div>
+    <div class="nav-tabs">
+      <div class="nav-tab active" id="tabAtt" onclick="switchPage('att')">Absensi</div>
+      <div class="nav-tab" id="tabDash" onclick="switchPage('dash')">Dashboard</div>
+      <div class="nav-tab" id="tabReport" onclick="switchPage('report')">Report</div>
+    </div>
+    <div class="nav-badge" id="navBadge">—</div>
+  </nav>
+
+  <!-- ABSENSI PAGE -->
+  <div id="pageAtt" class="page active">
+    <div class="att-header" id="attHeader">
+      <div class="service-tabs">
+        <div class="service-tab active" id="svcTab0" onclick="setService(0)">⛪ Ibadah 1</div>
+        <div class="service-tab" id="svcTab1" onclick="setService(1)">⛪ Ibadah 2</div>
+      </div>
+      <div class="date-banner">
+        <div class="date-banner-left">
+          <div class="date-banner-label">Tanggal Ibadah</div>
+          <div class="date-banner-val" id="activeDateVal">Memuat...</div>
+        </div>
+        <div class="date-picker-btn" onclick="toggleDatePicker()">Ganti ▾</div>
+      </div>
+      <div class="date-scroll-wrap" id="dateScrollWrap">
+        <div id="dateScroll"></div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-box">
+          <div class="stat-num hadir" id="statHadir">0</div>
+          <div class="stat-label">Hadir</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num absen" id="statAbsen">0</div>
+          <div class="stat-label">Belum</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num total" id="statTotal">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-scroll" id="komisiFilter"></div>
+      <div class="filter-scroll" id="keluargaFilter" style="margin-bottom:10px;"></div>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Cari nama jemaat..." oninput="renderMembers()">
+      </div>
+    </div>
+    <div class="member-list" id="memberList"></div>
+    <div class="submit-bar" id="submitBar">
+      <button class="submit-btn" id="submitBtn" onclick="submitBatch()">Simpan perubahan</button>
+    </div>
+    <div class="fab" id="fabBtn" onclick="openFabMenu()">＋</div>
+  </div>
+
+  <!-- DASHBOARD PAGE -->
+  <div id="pageDash" class="page">
+    <div class="dash-content" id="dashContent">
+      <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Memuat dashboard...</div></div>
+    </div>
+  </div>
+
+  <!-- REPORT PAGE -->
+  <div id="pageReport" class="page">
+    <div class="report-content" id="reportContent">
+      <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Memuat report...</div></div>
+    </div>
+  </div>
 </div>
+
+<!-- MODAL: Alasan Absen -->
+<div class="modal-overlay" id="modalAlasan" onclick="closeModalAlasan(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div style="font-size:17px;font-weight:800;margin-bottom:4px;">Alasan Tidak Hadir</div>
+      <div style="font-size:13px;color:var(--ink-3);" id="alasanMemberName"></div>
+      <div class="alasan-options">
+        <div class="alasan-opt" onclick="selectAlasan('Sakit')">
+          <div class="alasan-opt-icon">🤒</div>
+          <div class="alasan-opt-label">Sakit</div>
+        </div>
+        <div class="alasan-opt" onclick="selectAlasan('Keluar Kota')">
+          <div class="alasan-opt-icon">✈️</div>
+          <div class="alasan-opt-label">Keluar Kota</div>
+        </div>
+        <div class="alasan-opt" onclick="selectAlasan('Pelayanan')">
+          <div class="alasan-opt-icon">🙏</div>
+          <div class="alasan-opt-label">Pelayanan</div>
+        </div>
+        <div class="alasan-opt" onclick="selectAlasan('Tanpa Keterangan')">
+          <div class="alasan-opt-icon">❓</div>
+          <div class="alasan-opt-label">Tanpa Ket.</div>
+        </div>
+      </div>
+      <button class="alasan-confirm-btn" onclick="confirmAlasan()">Konfirmasi</button>
+      <button class="alasan-confirm-btn" style="background:var(--ink-4);margin-top:8px;" onclick="cancelAlasan()">Batal</button>
+      <div style="height:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Member Detail -->
+<div class="modal-overlay" id="modalMember" onclick="closeModalMember(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body" id="modalMemberBody"></div>
+  </div>
+</div>
+
+<!-- MODAL: Edit Profil Jemaat -->
+<div class="modal-overlay" id="modalEdit" onclick="closeModal('modalEdit', event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div style="font-size:17px;font-weight:800;margin-bottom:20px;">Edit Profil Jemaat</div>
+      <div id="editNamaDisplay" style="font-size:15px;font-weight:700;color:var(--teal);margin-bottom:16px;"></div>
+      <input type="hidden" id="editNamaKey">
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="editStatus">
+          <option value="Aktif">✅ Aktif</option>
+          <option value="Non-Aktif">⏸️ Non-Aktif</option>
+          <option value="Kuliah">🎓 Kuliah / Luar Negeri</option>
+          <option value="Meninggal">🕊️ Meninggal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Komisi</label>
+        <select class="form-select" id="editKomisi">
+          <option value="">— Tidak diisi —</option>
+          <option>ANAK</option><option>KOMPRI</option><option>KOMWAN</option>
+          <option>KOOR</option><option>PEMUDA</option><option>PENATUA</option>
+          <option>PENDETA</option><option>PRIA</option><option>REMAJA</option>
+          <option>SENIOR</option><option>STAFF</option><option>TIMOTIUS</option>
+          <option>WANITA</option><option>YESYURUN</option><option>LAINNYA</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ibadah</label>
+        <select class="form-select" id="editIbadah">
+          <option value="Ibadah 1">Ibadah 1</option>
+          <option value="Ibadah 2">Ibadah 2</option>
+          <option value="Keduanya">Keduanya</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Keluarga (Nama Kepala Keluarga)</label>
+        <input type="text" class="form-input" id="editKeluargaNama" placeholder="Contoh: Aang Chris Harjanto">
+      </div>
+      <div class="form-group">
+        <label class="form-label">No. HP / WhatsApp</label>
+        <input type="tel" class="form-input" id="editHpWa" placeholder="08xx-xxxx-xxxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Jenis Kelamin</label>
+        <select class="form-select" id="editJenisKelamin">
+          <option value="">— Tidak diisi —</option>
+          <option value="Laki-laki">Laki-laki</option>
+          <option value="Perempuan">Perempuan</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tanggal Lahir</label>
+        <input type="text" class="form-input" id="editTglLahir" placeholder="DD/MM/YYYY">
+      </div>
+      <button class="form-btn" id="editSaveBtn" onclick="saveEditProfile()">💾 Simpan Perubahan</button>
+      <div style="height:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Tambah Tanggal -->
+<div class="modal-overlay" id="modalTanggal" onclick="closeModal('modalTanggal', event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div style="font-size:17px;font-weight:800;margin-bottom:20px;">Tambah Tanggal Ibadah</div>
+      <div class="form-group">
+        <label class="form-label">Tanggal</label>
+        <input type="date" class="form-input" id="newTanggal">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ibadah</label>
+        <select class="form-select" id="newTanggalIbadah">
+          <option value="Ibadah 1">Ibadah 1</option>
+          <option value="Ibadah 2">Ibadah 2</option>
+        </select>
+      </div>
+      <button class="form-btn" id="addTanggalBtn" onclick="submitAddTanggal()">Tambah Tanggal</button>
+      <div style="height:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Tambah Jemaat -->
+<div class="modal-overlay" id="modalJemaat" onclick="closeModal('modalJemaat', event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div style="font-size:17px;font-weight:800;margin-bottom:20px;">Tambah Jemaat Baru</div>
+      <div class="form-group">
+        <label class="form-label">Nama Lengkap</label>
+        <input type="text" class="form-input" id="newNama" placeholder="NAMA JEMAAT">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Komisi</label>
+        <select class="form-select" id="newKomisi">
+          <option>ANAK</option><option>KOMPRI</option><option>KOMWAN</option>
+          <option>KOOR</option><option>PEMUDA</option><option>PENATUA</option>
+          <option>PENDETA</option><option>PRIA</option><option>REMAJA</option>
+          <option>SENIOR</option><option>STAFF</option><option>TIMOTIUS</option>
+          <option>WANITA</option><option>YESYURUN</option><option>LAINNYA</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ibadah</label>
+        <select class="form-select" id="newIbadah">
+          <option value="Ibadah 1">Ibadah 1</option>
+          <option value="Ibadah 2">Ibadah 2</option>
+          <option value="Keduanya">Keduanya</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Jenis Kelamin</label>
+        <select class="form-select" id="newJenisKelamin">
+          <option value="">— Tidak diisi —</option>
+          <option value="Laki-laki">Laki-laki</option>
+          <option value="Perempuan">Perempuan</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">No. HP / WhatsApp</label>
+        <input type="tel" class="form-input" id="newHpWa" placeholder="08xx-xxxx-xxxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tanggal Lahir (opsional)</label>
+        <input type="date" class="form-input" id="newTglLahir">
+      </div>
+      <button class="form-btn" id="addJemaatBtn" onclick="submitAddJemaat()">Tambah Jemaat</button>
+      <div style="height:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB MENU -->
+<div class="modal-overlay" id="modalFab" onclick="closeModal('modalFab', event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div style="font-size:17px;font-weight:800;margin-bottom:16px;">Tambah Data</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div onclick="openAddTanggal()" style="padding:16px;background:var(--teal-xl);border:1.5px solid var(--teal-l);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;">📅</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;">Tanggal Ibadah Baru</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:2px;">Tambah minggu baru ke sistem</div>
+          </div>
+        </div>
+        <div onclick="openAddJemaat()" style="padding:16px;background:var(--blue-l);border:1.5px solid #bfdbfe;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;">👤</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;">Jemaat Baru</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:2px;">Daftarkan anggota baru</div>
+          </div>
+        </div>
+      </div>
+      <div style="height:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Memuat data...</div>
+</div>
+
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx20XyrSj6LiftDKFSYxNF68OGauyV5VKvoFmltQyO-vh6wXi38fQkr4zmIzf5yvlsY/exec";
-const KOMISI_COLORS = {
-  'PENDETA':'#7c3aed','KOMPRI':'#2563eb','KOMWAN':'#db2777','KOOR':'#0891b2',
-  'PENATUA':'#d97706','PEMUDA':'#059669','REMAJA':'#ca8a04','ANAK':'#dc2626',
-  'WANITA':'#9333ea','PRIA':'#0284c7','SENIOR':'#65a30d','YESYURUN':'#b45309',
-  'TIMOTIUS':'#7c3aed','STAFF':'#64748b','LAINNYA':'#6b7280',
+// ── SUPABASE CONFIG ─────────────────────────────────────────
+// GANTI DENGAN URL DAN KEY SUPABASE ANDA:
+const SUPABASE_URL = 'https://gpuwlnknswprjtavrqsv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdwdXdsbmtuc3dwcmp0YXZycXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NDM1NjAsImV4cCI6MjA4OTAxOTU2MH0.JOr7dc_y9WZYZnQRVwF5qxKVW8ZdXOWSi42LsgIsPRk';
+
+const SERVICES   = ['Ibadah 1', 'Ibadah 2'];
+const BULAN_NAMES = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const BULAN_FULL  = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const ANAK_KOMISI = ['ANAK'];
+
+// ── SUPABASE HELPER ──────────────────────────────────────────
+const SB = {
+  headers() {
+    return {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    };
+  },
+  async get(table, query='') {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+      headers: this.headers()
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+  async upsert(table, data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: { ...this.headers(), 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res;
+  },
+  async insert(table, data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: { ...this.headers(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res;
+  },
+  async update(table, filter, data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+      method: 'PATCH',
+      headers: { ...this.headers(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res;
+  }
 };
 
+// ── STATE ────────────────────────────────────────────────────
+let PIN = '';
 let RAW = null;
-let SERVICES = [];
-let currentAttService = 0;
-let currentDashService = 0;
-let currentMode = 'absensi';
-let selectedDate = '';
-let attState = {};
+let currentService = 0;
+let selectedDate   = '';
+let attState       = {};
 let pendingChanges = {};
-let attKomisiFilter = '';
+let komisiFilter   = '';
+let keluargaFilterVal = '';
+let sortByKeluarga = false;
+let alasanTarget   = null;
+let alasanSelected = '';
+let alasanPrevState = null;
 
-// ── FIX DATES ──
-function fixDate(raw) {
-  if (!raw) return null;
-  // Already good format
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-    const d = new Date(raw + 'T00:00:00');
-    if (!isNaN(d) && d.getFullYear() >= 2020 && d.getFullYear() <= 2030) return raw;
-  }
-  // DD/MM/YYYY or DD/MM/YYYY.
-  const m1 = raw.replace('.','').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
-  // Check if it looks like a garbage date (1970, year < 2020, year > 2030)
-  const d = new Date(raw);
-  if (!isNaN(d) && d.getFullYear() >= 2020 && d.getFullYear() <= 2030) {
-    return d.toISOString().slice(0,10);
-  }
-  return null; // invalid
+// ── HELPER: safe HTML escape ─────────────────────────────────
+function esc(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
 }
 
-// ── CLEAN DATA ──
-function cleanData(raw) {
-  const result = {};
-  for (const sheetName of Object.keys(raw)) {
-    const sheet = raw[sheetName];
-    // Fix & filter dates
-    const validDates = [];
-    const validIndexes = [];
-    sheet.dates.forEach((d, i) => {
-      const fixed = fixDate(d);
-      if (fixed) { validDates.push(fixed); validIndexes.push(i); }
-    });
-    // Filter members - skip TOTAL/jumlah rows, only valid attendance
-    const members = sheet.members.filter(m => {
-      if (!m.nama || m.nama.trim() === '') return false;
-      if (m.komisi === 'TOTAL') return false;
-      const name = m.nama.toLowerCase().trim();
-      if (name === 'jumlah' || name === 'total') return false;
-      return true;
-    }).map(m => ({
-      ...m,
-      nama: m.nama.trim(),
-      komisi: normalizeKomisi(m.komisi),
-      attendance: validIndexes.map(i => m.attendance[i] || 0)
-    }));
-    result[sheetName] = { dates: validDates, members };
-  }
-  return result;
+// ── PIN ──────────────────────────────────────────────────────
+function pinInput(d) {
+  if (PIN.length >= 4) return;
+  PIN += d;
+  updatePinDots();
+  if (PIN.length === 4) setTimeout(verifyPin, 200);
 }
-
-function normalizeKomisi(k) {
-  if (!k) return 'LAINNYA';
-  k = k.toString().toUpperCase().trim();
-  if (k === '1' || k === '') return 'LAINNYA';
-  if (k.includes('PENDETA')) return 'PENDETA';
-  if (k.includes('KOMPRI')) return 'KOMPRI';
-  if (k.includes('KOMWAN')) return 'KOMWAN';
-  if (k.includes('KOOR') && !k.includes('KOMWAN') && !k.includes('KOMPRI')) return 'KOOR';
-  if (k.includes('PENATUA') || k.includes('PNTW')) return 'PENATUA';
-  if (k.includes('PEMUDA')) return 'PEMUDA';
-  if (k.includes('REMAJA')) return 'REMAJA';
-  if (k.includes('ANAK')) return 'ANAK';
-  if (k.includes('WANITA')) return 'WANITA';
-  if (k.includes('PRIA')) return 'PRIA';
-  if (k.includes('STAFF')) return 'STAFF';
-  if (k.includes('TIMOTIUS')) return 'TIMOTIUS';
-  if (k.includes('YESYURUN')) return 'YESYURUN';
-  return 'LAINNYA';
+function pinDel() {
+  PIN = PIN.slice(0, -1);
+  updatePinDots();
+  document.getElementById('pinError').textContent = '';
+  document.querySelectorAll('.pin-dot').forEach(d => d.classList.remove('error'));
 }
-
-// ── LOAD DATA via JSONP (bypass CORS untuk file:// lokal) ──
-function loadData() {
-  document.getElementById('loadingScreen').classList.remove('hidden');
-
-  // Hapus script JSONP lama jika ada
-  const old = document.getElementById('jsonp-script');
-  if (old) old.remove();
-
-  // Timeout jika gagal
-  const timer = setTimeout(() => {
-    document.getElementById('loadingScreen').classList.add('hidden');
-    toast('❌ Gagal memuat data. Cek koneksi internet.', 'err', 5000);
-  }, 15000);
-
-  // Callback global yang akan dipanggil Apps Script
-  window._jsonpCallback = function(json) {
-    clearTimeout(timer);
-    try {
-      RAW = cleanData(json);
-      SERVICES = Object.keys(RAW);
-      currentAttService = 0;
-      currentDashService = 0;
-      buildServicePills();
-      initAttPage();
-      document.getElementById('loadingScreen').classList.add('hidden');
-      toast('✅ Data berhasil dimuat dari Google Sheets', 'ok');
-    } catch(e) {
-      document.getElementById('loadingScreen').classList.add('hidden');
-      toast('❌ Error parsing data: ' + e.message, 'err', 5000);
-    }
-  };
-
-  const script = document.createElement('script');
-  script.id = 'jsonp-script';
-  script.src = APPS_SCRIPT_URL + '?callback=_jsonpCallback&t=' + Date.now();
-  script.onerror = () => {
-    clearTimeout(timer);
-    document.getElementById('loadingScreen').classList.add('hidden');
-    toast('❌ Gagal memuat. Cek koneksi internet.', 'err', 5000);
-  };
-  document.body.appendChild(script);
-}
-
-function buildServicePills() {
-  ['attServicePills','dashServicePills'].forEach((id, ctx) => {
-    const el = document.getElementById(id);
-    el.innerHTML = SERVICES.map((s,i) =>
-      `<button class="service-pill ${i===0?'active':''}" onclick="setService(${i},'${ctx===0?'att':'dash'}')" id="${ctx===0?'att':'dash'}Svc${i}">⛪ ${s}</button>`
-    ).join('');
+function updatePinDots() {
+  document.querySelectorAll('.pin-dot').forEach((d,i) => {
+    d.classList.toggle('filled', i < PIN.length);
   });
 }
 
-// ── TOAST ──
-function toast(msg, type='ok', dur=2500) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast show ' + type;
-  setTimeout(() => t.classList.remove('show'), dur);
-}
-
-// ── MODE ──
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('pageAbsensi').classList.toggle('active', mode==='absensi');
-  document.getElementById('pageDashboard').classList.toggle('active', mode==='dashboard');
-  document.getElementById('tabAbsensi').classList.toggle('active', mode==='absensi');
-  document.getElementById('tabDashboard').classList.toggle('active', mode==='dashboard');
-  if (mode==='dashboard') renderDashboard();
-}
-
-function setService(idx, ctx) {
-  if (ctx==='att') {
-    currentAttService = idx;
-    SERVICES.forEach((_,i) => {
-      const el = document.getElementById('attSvc'+i);
-      if (el) el.classList.toggle('active', i===idx);
-    });
-    pendingChanges = {};
-    updateSubmitBar();
-    initAttPage();
-  } else {
-    currentDashService = idx;
-    SERVICES.forEach((_,i) => {
-      const el = document.getElementById('dashSvc'+i);
-      if (el) el.classList.toggle('active', i===idx);
-    });
-    renderDashboard();
+// PIN verification via Supabase
+async function verifyPin() {
+  try {
+    const data = await SB.get('config', 'key=eq.pin&select=value');
+    if (data.length && data[0].value === PIN) {
+      onPinOk();
+    } else {
+      pinError();
+    }
+  } catch {
+    pinError();
+    document.getElementById('pinError').textContent = 'Tidak ada koneksi. Coba lagi.';
   }
 }
 
-// ── ABSENSI ──
+function onPinOk() {
+  document.getElementById('pinScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  loadData();
+}
+function pinError() {
+  document.querySelectorAll('.pin-dot').forEach(d => {
+    d.classList.remove('filled');
+    d.classList.add('error');
+  });
+  document.getElementById('pinError').textContent = 'PIN salah. Coba lagi.';
+  PIN = '';
+  setTimeout(() => {
+    document.querySelectorAll('.pin-dot').forEach(d => d.classList.remove('error'));
+  }, 800);
+}
+
+// ── LOAD DATA (Supabase) ──────────────────────────────────────
+async function loadData() {
+  showLoading('Memuat data jemaat...');
+  try {
+    // Fetch jemaat (under 1000, no pagination needed)
+    const jemaatData = await SB.get('jemaat', 'select=*&order=nama');
+
+    // Fetch absensi with pagination (default limit = 1000)
+    let absensiData = [];
+    const PAGE_SIZE = 1000;
+    let offset = 0;
+    let hasMore = true;
+    while (hasMore) {
+      const batch = await SB.get('absensi',
+        `select=tanggal,nama,ibadah,status_hadir,alasan&order=tanggal&limit=${PAGE_SIZE}&offset=${offset}`
+      );
+      absensiData = absensiData.concat(batch);
+      offset += PAGE_SIZE;
+      hasMore = batch.length === PAGE_SIZE;
+    }
+
+    // Build RAW structure
+    const tanggals = {};
+    const absensi_map = {};
+
+    SERVICES.forEach(svc => { tanggals[svc] = []; });
+
+    absensiData.forEach(r => {
+      if (!tanggals[r.ibadah]) tanggals[r.ibadah] = [];
+      if (!tanggals[r.ibadah].includes(r.tanggal)) {
+        tanggals[r.ibadah].push(r.tanggal);
+      }
+      if (!absensi_map[r.nama]) absensi_map[r.nama] = {};
+      if (!absensi_map[r.nama][r.ibadah]) absensi_map[r.nama][r.ibadah] = {};
+      absensi_map[r.nama][r.ibadah][r.tanggal] = {
+        status_hadir: r.status_hadir,
+        alasan: r.alasan || ''
+      };
+    });
+
+    SERVICES.forEach(svc => { tanggals[svc].sort(); });
+
+    RAW = {
+      jemaat: jemaatData,
+      tanggals,
+      absensi_map
+    };
+
+    hideLoading();
+    initAttPage();
+  } catch (err) {
+    hideLoading();
+    showToast('❌ Gagal memuat: ' + err.message, 'error');
+    console.error(err);
+  }
+}
+
+// ── INIT ABSENSI PAGE ─────────────────────────────────────────
 function initAttPage() {
   if (!RAW) return;
-  const d = RAW[SERVICES[currentAttService]];
-  const dates = d.dates;
+  const svcName = SERVICES[currentService];
+  const dates   = (RAW.tanggals[svcName] || []);
+  const members = getServiceMembers();
 
   const scroll = document.getElementById('dateScroll');
   scroll.innerHTML = '';
   dates.forEach((date, i) => {
-    const dt = new Date(date + 'T00:00:00');
-    const day = dt.getDate();
-    const month = dt.toLocaleDateString('id-ID', {month:'short'});
+    const dt  = new Date(date + 'T00:00:00');
     const chip = document.createElement('div');
     chip.className = 'date-chip' + (i === dates.length-1 ? ' active' : '');
-    chip.innerHTML = `<span class="day">${day}</span><span class="month">${month}</span>`;
+    chip.innerHTML = `<span class="day">${dt.getDate()}</span><span class="mon">${BULAN_NAMES[dt.getMonth()+1]}</span>`;
     chip.onclick = () => selectDate(date, chip);
     scroll.appendChild(chip);
   });
-  selectedDate = dates[dates.length - 1];
-  loadAttState();
 
-  const allKomisi = [...new Set(d.members.map(m => m.komisi))].sort();
-  const ks = document.getElementById('komisiFilterAtt');
-  ks.innerHTML = '<div class="filter-chip active" onclick="setAttKomisi(\'\',this)">Semua</div>';
+  selectedDate = dates[dates.length-1] || '';
+  updateDateBanner();
+
+  const allKomisi = [...new Set(members.map(m => m.komisi))].sort();
+  const ks = document.getElementById('komisiFilter');
+  ks.innerHTML = `<div class="filter-chip active" onclick="setKomisi('',this)">Semua</div>`;
   allKomisi.forEach(k => {
-    ks.innerHTML += `<div class="filter-chip" onclick="setAttKomisi('${k}',this)">${k}</div>`;
+    ks.innerHTML += `<div class="filter-chip" onclick="setKomisi('${esc(k)}',this)">${esc(k)}</div>`;
   });
-  attKomisiFilter = '';
-  document.getElementById('attSearch').value = '';
+  komisiFilter = '';
+
+  // Keluarga filter
+  const allKeluarga = [...new Set(members.map(m => m.keluarga_nama).filter(Boolean))].sort();
+  const kf = document.getElementById('keluargaFilter');
+  kf.innerHTML = `<div class="filter-chip active" onclick="setKeluarga('',this)" style="border-color:var(--purple);color:var(--purple);">👨‍👩‍👧‍👦 Semua</div>`;
+  kf.innerHTML += `<div class="filter-chip" onclick="toggleSortKeluarga(this)" style="border-color:var(--blue);color:var(--blue);" id="sortKeluargaChip">↕ Sort Keluarga</div>`;
+  allKeluarga.forEach(k => {
+    kf.innerHTML += `<div class="filter-chip" onclick="setKeluarga('${esc(k)}',this)">${esc(k)}</div>`;
+  });
+  keluargaFilterVal = '';
+  sortByKeluarga = false;
+
+  document.getElementById('searchInput').value = '';
+  loadAttState();
 }
 
-function setAttKomisi(val, el) {
-  attKomisiFilter = val;
-  document.querySelectorAll('#komisiFilterAtt .filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  renderMemberList();
+function getServiceMembers() {
+  if (!RAW) return [];
+  const svcName = SERVICES[currentService].toLowerCase();
+  const HIDDEN_STATUS = ['non-aktif', 'meninggal', 'kuliah'];
+  return RAW.jemaat.filter(m => {
+    // Hide non-aktif members from absensi
+    const st = (m.status || '').toLowerCase();
+    if (st && HIDDEN_STATUS.includes(st)) return false;
+    const ib = (m.ibadah || '').toLowerCase();
+    return ib === svcName || ib === 'keduanya' || ib === '';
+  });
+}
+
+// Get ALL members (including non-aktif) for dashboard/report
+function getAllMembers() {
+  if (!RAW) return [];
+  return RAW.jemaat;
+}
+
+function getActiveMembers() {
+  if (!RAW) return [];
+  const HIDDEN_STATUS = ['non-aktif', 'meninggal', 'kuliah'];
+  return RAW.jemaat.filter(m => {
+    const st = (m.status || '').toLowerCase();
+    return !st || !HIDDEN_STATUS.includes(st);
+  });
+}
+
+function updateDateBanner() {
+  if (!selectedDate) {
+    document.getElementById('activeDateVal').textContent = 'Belum ada tanggal';
+    return;
+  }
+  const dt = new Date(selectedDate + 'T00:00:00');
+  const label = dt.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('activeDateVal').textContent = label;
+}
+
+function toggleDatePicker() {
+  const wrap = document.getElementById('dateScrollWrap');
+  wrap.style.display = wrap.style.display === 'block' ? 'none' : 'block';
 }
 
 function selectDate(date, chip) {
@@ -477,160 +1424,945 @@ function selectDate(date, chip) {
   chip.classList.add('active');
   pendingChanges = {};
   updateSubmitBar();
+  updateDateBanner();
+  document.getElementById('dateScrollWrap').style.display = 'none';
   loadAttState();
 }
 
 function loadAttState() {
-  const d = RAW[SERVICES[currentAttService]];
-  const dateIdx = d.dates.indexOf(selectedDate);
+  if (!RAW || !selectedDate) return;
+  const svcName = SERVICES[currentService];
+  const members = getServiceMembers();
   attState = {};
-  d.members.forEach(m => {
-    attState[m.nama] = dateIdx !== -1 ? m.attendance[dateIdx] === 1 : false;
+  members.forEach(m => {
+    const rec = (RAW.absensi_map[m.nama] || {})[svcName] || {};
+    const entry = rec[selectedDate];
+    attState[m.nama] = entry
+      ? { status: entry.status_hadir, alasan: entry.alasan || '' }
+      : { status: 'Absen', alasan: '' };
   });
-  renderMemberList();
+  renderMembers();
 }
 
-function renderMemberList() {
-  if (!RAW) return;
-  const d = RAW[SERVICES[currentAttService]];
-  const q = document.getElementById('attSearch').value.toLowerCase();
-  let members = d.members;
-  if (attKomisiFilter) members = members.filter(m => m.komisi === attKomisiFilter);
-  if (q) members = members.filter(m => m.nama.toLowerCase().includes(q));
-
-  const hadirCount = d.members.filter(m => attState[m.nama]).length;
-  const total = d.members.length;
-  document.getElementById('attHadirNum').textContent = hadirCount;
-  document.getElementById('attAbsenNum').textContent = total - hadirCount;
-  document.getElementById('attTotalNum').textContent = total;
-  document.getElementById('navBadge').textContent = `${hadirCount}/${total}`;
-
-  const list = document.getElementById('memberList');
-  if (!members.length) {
-    list.innerHTML = '<div class="empty"><div class="e-icon">🔍</div><div class="e-text">Tidak ditemukan</div></div>';
-    return;
-  }
-  list.innerHTML = members.map(m => {
-    const isHadir = attState[m.nama];
-    const initials = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-    const safeName = m.nama.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<div class="member-card ${isHadir?'is-hadir':''}" onclick="toggleMember('${safeName}')">
-      <div class="member-avatar">${initials}</div>
-      <div class="member-info">
-        <div class="member-name">${m.nama}</div>
-        <div class="member-komisi">${m.komisi}</div>
-      </div>
-      <button class="toggle-att" tabindex="-1"></button>
-    </div>`;
-  }).join('');
+function setKomisi(val, el) {
+  komisiFilter = val;
+  document.querySelectorAll('#komisiFilter .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderMembers();
 }
 
-function toggleMember(nama) {
-  attState[nama] = !attState[nama];
-  pendingChanges[nama] = attState[nama];
-  const d = RAW[SERVICES[currentAttService]];
-  const dateIdx = d.dates.indexOf(selectedDate);
-  const member = d.members.find(m => m.nama === nama);
-  if (member && dateIdx !== -1) member.attendance[dateIdx] = attState[nama] ? 1 : 0;
-  updateSubmitBar();
-  renderMemberList();
+function setKeluarga(val, el) {
+  keluargaFilterVal = val;
+  document.querySelectorAll('#keluargaFilter .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  // Keep sort chip state separate
+  const sortChip = document.getElementById('sortKeluargaChip');
+  if (sortChip && sortByKeluarga) sortChip.classList.add('active');
+  renderMembers();
 }
 
-function updateSubmitBar() {
-  const n = Object.keys(pendingChanges).length;
-  const bar = document.getElementById('submitBar');
-  bar.classList.toggle('visible', n > 0);
-  document.getElementById('submitBtnText').textContent =
-    n > 0 ? `💾 Simpan ${n} perubahan ke Sheets` : '';
+function toggleSortKeluarga(el) {
+  sortByKeluarga = !sortByKeluarga;
+  el.classList.toggle('active', sortByKeluarga);
+  el.textContent = sortByKeluarga ? '↕ Sort: Keluarga' : '↕ Sort Keluarga';
+  el.style.background = sortByKeluarga ? 'var(--blue)' : '';
+  el.style.color = sortByKeluarga ? 'white' : 'var(--blue)';
+  el.style.borderColor = 'var(--blue)';
+  renderMembers();
 }
 
-async function submitAllPending() {
-  const keys = Object.keys(pendingChanges);
-  if (!keys.length) return;
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  document.getElementById('submitBtnText').textContent = '⏳ Menyimpan...';
-  toast(`Mengirim ${keys.length} data...`, 'info', 8000);
-  const sheetName = SERVICES[currentAttService];
-  let ok = 0, fail = 0;
-  for (const nama of keys) {
-    try {
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ nama, tanggal: selectedDate, hadir: pendingChanges[nama], sheetName })
-      });
-      ok++;
-    } catch { fail++; }
-  }
-  btn.disabled = false;
+function setService(idx) {
+  currentService = idx;
+  SERVICES.forEach((_,i) => {
+    document.getElementById('svcTab'+i).classList.toggle('active', i===idx);
+  });
   pendingChanges = {};
   updateSubmitBar();
-  if (fail === 0) toast(`✅ ${ok} data dikirim ke Google Sheets!`, 'ok', 3000);
-  else toast(`⚠️ ${ok} terkirim, ${fail} gagal`, 'err', 4000);
+  initAttPage();
 }
 
-// ── DASHBOARD ──
-function renderDashboard() {
+// ── RENDER MEMBERS ────────────────────────────────────────────
+function renderMembers() {
   if (!RAW) return;
-  const d = RAW[SERVICES[currentDashService]];
-  const {members, dates} = d;
-  const totals = dates.map((_,di) => members.reduce((s,m) => s + m.attendance[di], 0));
-  const avgAtt = Math.round(totals.reduce((a,b)=>a+b,0)/dates.length);
-  const allAtt = members.reduce((s,m) => s + m.attendance.reduce((a,b)=>a+b,0), 0);
-  const rate = Math.round(allAtt / (members.length * dates.length) * 100);
-  document.getElementById('navBadge').textContent = rate + '%';
-  document.getElementById('dashStats').innerHTML = `
-    <div class="stat-tile"><div class="st-label">Jemaat</div><div class="st-val">${members.length}</div><div class="st-sub">terdaftar</div></div>
-    <div class="stat-tile"><div class="st-label">Avg Hadir</div><div class="st-val">${avgAtt}</div><div class="st-sub">per minggu</div></div>
-    <div class="stat-tile"><div class="st-label">Kehadiran</div><div class="st-val">${rate}%</div><div class="st-sub">keseluruhan</div></div>
-    <div class="stat-tile"><div class="st-label">Minggu Ini</div><div class="st-val">${totals[totals.length-1]}</div><div class="st-sub">hadir</div></div>`;
-  const maxT = Math.max(...totals);
-  document.getElementById('dashBarChart').innerHTML = dates.map((date, di) => {
-    const lbl = new Date(date+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit'});
-    const pct = Math.round(totals[di]/maxT*100);
-    return `<div class="bar-col"><div class="bar-wrap"><div class="bar" style="height:${pct}%"></div></div><div class="bar-lbl">${lbl}</div></div>`;
-  }).join('');
-  const kc = {};
-  members.forEach(m => kc[m.komisi] = (kc[m.komisi]||0)+1);
-  const ke = Object.entries(kc).sort((a,b)=>b[1]-a[1]);
-  const maxK = ke[0][1];
-  document.getElementById('dashKomisiList').innerHTML = ke.map(([k,n]) => {
-    const color = KOMISI_COLORS[k]||'#6b7280';
-    return `<div class="komisi-row">
-      <div class="komisi-dot" style="background:${color}"></div>
-      <div class="komisi-name">${k}</div>
-      <div class="komisi-bar-wrap"><div class="komisi-bar-fill" style="width:${Math.round(n/maxK*100)}%;background:${color}"></div></div>
-      <div class="komisi-num">${n}</div>
-    </div>`;
-  }).join('');
-  renderDashMembers();
-}
+  const members = getServiceMembers();
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const svcName = SERVICES[currentService];
+  const bulanIni = new Date().getMonth() + 1;
 
-function renderDashMembers() {
-  if (!RAW) return;
-  const d = RAW[SERVICES[currentDashService]];
-  const q = document.getElementById('dashSearch').value.toLowerCase();
-  let members = q ? d.members.filter(m => m.nama.toLowerCase().includes(q)) : d.members.slice(0,10);
-  document.getElementById('dashMemberList').innerHTML = members.slice(0,50).map(m => {
-    const total = m.attendance.reduce((a,b)=>a+b,0);
-    const rate = Math.round(total/d.dates.length*100);
-    const color = rate>=80?'#10b981':rate>=50?'#f59e0b':'#ef4444';
+  let filtered = members;
+  if (komisiFilter) filtered = filtered.filter(m => m.komisi === komisiFilter);
+  if (keluargaFilterVal) filtered = filtered.filter(m => m.keluarga_nama === keluargaFilterVal);
+  if (q) filtered = filtered.filter(m => m.nama.toLowerCase().includes(q));
+
+  // Sort by keluarga if enabled
+  if (sortByKeluarga) {
+    filtered = [...filtered].sort((a, b) => {
+      const famA = (a.keluarga_nama || 'zzz').toLowerCase();
+      const famB = (b.keluarga_nama || 'zzz').toLowerCase();
+      if (famA !== famB) return famA.localeCompare(famB);
+      return a.nama.localeCompare(b.nama);
+    });
+  }
+
+  const hadirCount = members.filter(m => attState[m.nama]?.status === 'Hadir').length;
+  document.getElementById('statHadir').textContent = hadirCount;
+  document.getElementById('statAbsen').textContent  = members.length - hadirCount;
+  document.getElementById('statTotal').textContent  = members.length;
+  document.getElementById('navBadge').textContent   = `${hadirCount}/${members.length}`;
+
+  const list = document.getElementById('memberList');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ditemukan</div></div>';
+    return;
+  }
+
+  let lastKeluarga = '';
+  list.innerHTML = filtered.map((m, idx) => {
+    // Keluarga separator when sorted by keluarga
+    let keluargaHeader = '';
+    if (sortByKeluarga || keluargaFilterVal) {
+      const fam = m.keluarga_nama || 'Tanpa Keluarga';
+      if (fam !== lastKeluarga) {
+        lastKeluarga = fam;
+        keluargaHeader = `<div style="font-size:12px;font-weight:800;color:var(--purple);padding:12px 0 4px;display:flex;align-items:center;gap:6px;${idx>0?'margin-top:8px;border-top:2px solid var(--purple-l);padding-top:16px;':''}">
+          <span>🏠</span> ${esc(fam)}
+        </div>`;
+      }
+    }
+
+    const state    = attState[m.nama] || { status:'Absen', alasan:'' };
+    const isHadir  = state.status === 'Hadir';
+    const alasan   = state.alasan || '';
     const initials = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-    return `<div class="member-row">
-      <div class="mr-avatar">${initials}</div>
-      <div class="mr-info"><div class="mr-name">${m.nama}</div><div class="mr-komisi">${m.komisi}</div></div>
-      <div class="mr-rate">
-        <div class="mr-rate-num" style="color:${color}">${rate}%</div>
-        <div class="mr-bar"><div class="mr-bar-fill" style="width:${rate}%;background:${color}"></div></div>
+    const safe     = m.nama.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+
+    const svcMap = (RAW.absensi_map[m.nama] || {})[svcName] || {};
+    const dates  = RAW.tanggals[svcName] || [];
+    const hadirN = dates.filter(d => svcMap[d]?.status_hadir === 'Hadir').length;
+    const rate   = dates.length ? Math.round(hadirN / dates.length * 100) : 0;
+    const rateColor = rate>=80?'var(--green)':rate>=50?'var(--amber)':'var(--red)';
+
+    let streak = 0;
+    for (let i = dates.length-1; i >= 0; i--) {
+      if ((svcMap[dates[i]]?.status_hadir || 'Absen') !== 'Hadir') streak++;
+      else break;
+    }
+
+    const bulanM = getBulanLahir(m);
+    const isBday = bulanM && bulanM === bulanIni;
+
+    const cardClass = [
+      'member-card',
+      isHadir ? 'is-hadir' : (alasan ? 'is-absen-alasan' : ''),
+      streak >= 3 && !isHadir ? 'alert-absen' : ''
+    ].filter(Boolean).join(' ');
+
+    return `${keluargaHeader}<div class="${cardClass}">
+      <div class="member-avatar" onclick="openMemberDetail('${safe}')">${esc(initials)}</div>
+      <div class="member-info" onclick="openMemberDetail('${safe}')">
+        <div class="member-name">
+          ${esc(m.nama)}
+          ${isBday ? '<span class="birthday-badge">🎂</span>' : ''}
+        </div>
+        <div class="member-meta">
+          <span>${esc(m.komisi)}</span>
+          <span style="color:${rateColor}" class="member-rate">${rate}%</span>
+          ${streak >= 3 && !isHadir ? `<span class="absen-streak">⚠️ ${streak}x absen</span>` : ''}
+        </div>
+      </div>
+      <div class="toggle-wrap">
+        <div class="toggle ${isHadir?'on':''}" onclick="toggleMember('${safe}')"></div>
+        ${!isHadir && alasan ? `<div class="alasan-tag">${esc(alasan)}</div>` : ''}
       </div>
     </div>`;
-  }).join('') + (!q && d.members.length>10 ? `<div style="text-align:center;padding:12px;font-size:13px;color:var(--text-3)">Ketik nama untuk cari anggota lainnya</div>` : '');
+  }).join('');
 }
 
-// ── INIT ──
-loadData();
+// ── TOGGLE MEMBER ─────────────────────────────────────────────
+function toggleMember(nama) {
+  const cur = attState[nama] || { status:'Absen', alasan:'' };
+  if (cur.status === 'Hadir') {
+    // [FIX] Save previous state before opening alasan modal
+    alasanPrevState = { nama, status: cur.status, alasan: cur.alasan };
+    attState[nama] = { status: 'Absen', alasan: '' };
+    pendingChanges[nama] = { status_hadir: 'Absen', alasan: '' };
+    openAlasanModal(nama);
+  } else {
+    attState[nama] = { status: 'Hadir', alasan: '' };
+    pendingChanges[nama] = { status_hadir: 'Hadir', alasan: '' };
+  }
+  updateSubmitBar();
+  renderMembers();
+}
+
+// ── ALASAN MODAL ──────────────────────────────────────────────
+function openAlasanModal(nama) {
+  alasanTarget   = nama;
+  alasanSelected = '';
+  document.getElementById('alasanMemberName').textContent = nama;
+  document.querySelectorAll('.alasan-opt').forEach(o => o.classList.remove('selected'));
+  document.getElementById('modalAlasan').classList.add('open');
+}
+function selectAlasan(val) {
+  alasanSelected = val;
+  document.querySelectorAll('.alasan-opt').forEach(o => {
+    o.classList.toggle('selected', o.querySelector('.alasan-opt-label').textContent.trim() === val
+      || (val === 'Tanpa Keterangan' && o.querySelector('.alasan-opt-label').textContent.includes('Tanpa')));
+  });
+}
+function confirmAlasan() {
+  if (alasanTarget) {
+    attState[alasanTarget].alasan = alasanSelected;
+    if (pendingChanges[alasanTarget]) pendingChanges[alasanTarget].alasan = alasanSelected;
+  }
+  alasanPrevState = null;
+  closeModalAlasan();
+  renderMembers();
+}
+// [FIX] Cancel alasan — revert to previous state
+function cancelAlasan() {
+  if (alasanPrevState) {
+    attState[alasanPrevState.nama] = { status: alasanPrevState.status, alasan: alasanPrevState.alasan };
+    delete pendingChanges[alasanPrevState.nama];
+    alasanPrevState = null;
+    updateSubmitBar();
+  }
+  closeModalAlasan();
+  renderMembers();
+}
+function closeModalAlasan(e) {
+  if (e && e.target !== document.getElementById('modalAlasan')) return;
+  // If closing by clicking overlay without confirm, revert
+  if (alasanPrevState) {
+    cancelAlasan();
+    return;
+  }
+  document.getElementById('modalAlasan').classList.remove('open');
+}
+
+// ── HELPER ───────────────────────────────────────────────────
+function getBulanLahir(m) {
+  if (m.tgl_lahir) {
+    const dashParts = m.tgl_lahir.split('-');
+    if (dashParts.length === 3) return parseInt(dashParts[1]);
+    const slashParts = m.tgl_lahir.split('/');
+    if (slashParts.length === 3) return parseInt(slashParts[1]);
+  }
+  return m.bulan_lahir ? parseInt(m.bulan_lahir) : 0;
+}
+
+function isAnak(m) {
+  return ANAK_KOMISI.includes((m.komisi || '').toUpperCase());
+}
+
+// ── MEMBER DETAIL MODAL ───────────────────────────────────────
+function openMemberDetail(nama) {
+  const svcName = SERVICES[currentService];
+  const m = RAW.jemaat.find(x => x.nama === nama);
+  if (!m) return;
+
+  const svcMap = (RAW.absensi_map[m.nama] || {})[svcName] || {};
+  const dates  = RAW.tanggals[svcName] || [];
+  const hadirN = dates.filter(d => svcMap[d]?.status_hadir === 'Hadir').length;
+  const rate   = dates.length ? Math.round(hadirN / dates.length * 100) : 0;
+  const rateColor = rate>=80?'var(--green)':rate>=50?'var(--amber)':'var(--red)';
+  const initials = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const safe     = m.nama.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+  const bulanIni = new Date().getMonth() + 1;
+  const bulanM   = getBulanLahir(m);
+  const isBday   = bulanM && bulanM === bulanIni;
+
+  const historyRows = dates.slice().reverse().map(date => {
+    const dt    = new Date(date + 'T00:00:00');
+    const label = dt.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+    const entry = svcMap[date];
+    const st    = entry?.status_hadir || 'Absen';
+    const al    = entry?.alasan || '';
+    const badgeClass = st === 'Hadir' ? 'hadir' : (al ? 'absen-alasan' : 'absen');
+    const badgeText  = st === 'Hadir' ? '✓ Hadir' : (al ? '✗ ' + esc(al) : '✗ Absen');
+    return `<div class="history-row">
+      <div class="history-date">${label}</div>
+      <div class="history-badge ${badgeClass}">${badgeText}</div>
+    </div>`;
+  }).join('');
+
+  const waBtn = m.hp_wa
+    ? `<a class="wa-btn" href="https://wa.me/${m.hp_wa.replace(/\D/g,'')}" target="_blank">💬 WhatsApp ${esc(m.nama.split(' ')[0])}</a>`
+    : '';
+
+  const namaLengkap  = m.nama_lengkap && m.nama_lengkap !== m.nama ? esc(m.nama_lengkap) : '';
+  const keluargaInfo = m.keluarga_nama ? `🏠 ${esc(m.keluarga_nama)}` : '';
+  const tglLahirInfo = m.tgl_lahir ? `${isBday ? '🎂' : '📅'} ${esc(m.tgl_lahir)}${isBday ? ' — Ulang Tahun Bulan Ini!' : ''}` : '';
+  const jenisKel     = m.jenis_kelamin ? (m.jenis_kelamin === 'Laki-laki' ? '👨' : '👩') + ' ' + esc(m.jenis_kelamin) : '';
+
+  const statusIcon = {'Aktif':'✅','Non-Aktif':'⏸️','Kuliah':'🎓','Meninggal':'🕊️'}[m.status] || '';
+  const statusLabel = m.status && m.status !== 'Aktif' ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:${m.status==='Meninggal'?'var(--ink-4)':m.status==='Kuliah'?'var(--blue-l)':'var(--amber-l)'};color:${m.status==='Meninggal'?'white':m.status==='Kuliah'?'var(--blue)':'var(--amber)'};">${statusIcon} ${esc(m.status)}</span>` : '';
+
+  document.getElementById('modalMemberBody').innerHTML = `
+    <div class="member-detail-header">
+      <div class="member-detail-avatar" style="${isBday?'background:var(--purple)':''}">${isBday?'🎂':esc(initials)}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="member-detail-name">${esc(m.nama)} ${statusLabel}</div>
+        ${namaLengkap ? `<div style="font-size:12px;color:var(--ink-3);margin-top:1px;">${namaLengkap}</div>` : ''}
+        <div class="member-detail-komisi">${esc(m.komisi)} · ${esc(m.ibadah)}</div>
+      </div>
+    </div>
+    ${(keluargaInfo||tglLahirInfo||jenisKel) ? `
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;display:flex;flex-direction:column;gap:6px;">
+      ${jenisKel ? `<div style="font-size:13px;color:var(--ink-2);">${jenisKel}</div>` : ''}
+      ${tglLahirInfo ? `<div style="font-size:13px;color:${isBday?'var(--purple)':'var(--ink-2)'};">${tglLahirInfo}</div>` : ''}
+      ${keluargaInfo ? `<div style="font-size:13px;color:var(--ink-2);">${keluargaInfo}</div>` : ''}
+    </div>` : ''}
+    <div class="member-stats-row">
+      <div class="member-stat">
+        <div class="member-stat-num" style="color:${rateColor}">${rate}%</div>
+        <div class="member-stat-label">Kehadiran</div>
+      </div>
+      <div class="member-stat">
+        <div class="member-stat-num" style="color:var(--green)">${hadirN}</div>
+        <div class="member-stat-label">Hadir</div>
+      </div>
+      <div class="member-stat">
+        <div class="member-stat-num" style="color:var(--red)">${dates.length - hadirN}</div>
+        <div class="member-stat-label">Absen</div>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Riwayat</div>
+    ${historyRows || '<div style="color:var(--ink-4);font-size:13px;padding:12px 0;">Belum ada data</div>'}
+    ${waBtn}
+    <button onclick="openEditProfile('${safe}')" style="width:100%;height:48px;background:var(--ink);color:white;border-radius:12px;border:none;font-size:15px;font-weight:800;font-family:var(--font);cursor:pointer;margin-top:8px;transition:all .2s;">✏️ Edit Profil</button>
+    <div style="height:4px;"></div>`;
+
+  document.getElementById('modalMember').classList.add('open');
+}
+function closeModalMember(e) {
+  if (e && e.target !== document.getElementById('modalMember')) return;
+  document.getElementById('modalMember').classList.remove('open');
+}
+
+// ── EDIT PROFILE ──────────────────────────────────────────────
+function openEditProfile(nama) {
+  const m = RAW.jemaat.find(x => x.nama === nama);
+  if (!m) return;
+
+  closeModalMember();
+  document.getElementById('modalMember').classList.remove('open');
+
+  document.getElementById('editNamaKey').value = m.nama;
+  document.getElementById('editNamaDisplay').textContent = m.nama;
+  document.getElementById('editStatus').value = m.status || 'Aktif';
+  document.getElementById('editKomisi').value = m.komisi || '';
+  document.getElementById('editIbadah').value = m.ibadah || 'Keduanya';
+  document.getElementById('editKeluargaNama').value = m.keluarga_nama || '';
+  document.getElementById('editHpWa').value = m.hp_wa || '';
+  document.getElementById('editJenisKelamin').value = m.jenis_kelamin || '';
+  document.getElementById('editTglLahir').value = m.tgl_lahir || '';
+
+  setTimeout(() => {
+    document.getElementById('modalEdit').classList.add('open');
+  }, 200);
+}
+
+async function saveEditProfile() {
+  const nama = document.getElementById('editNamaKey').value;
+  if (!nama) return;
+
+  const updates = {
+    status: document.getElementById('editStatus').value,
+    komisi: document.getElementById('editKomisi').value,
+    ibadah: document.getElementById('editIbadah').value,
+    keluarga_nama: document.getElementById('editKeluargaNama').value.trim(),
+    hp_wa: document.getElementById('editHpWa').value.trim(),
+    jenis_kelamin: document.getElementById('editJenisKelamin').value,
+    tgl_lahir: document.getElementById('editTglLahir').value.trim()
+  };
+
+  const btn = document.getElementById('editSaveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    await SB.update('jemaat', `nama=eq.${encodeURIComponent(nama)}`, updates);
+
+    // Update RAW locally
+    const m = RAW.jemaat.find(x => x.nama === nama);
+    if (m) Object.assign(m, updates);
+
+    showToast('✅ Profil berhasil diperbarui', 'success');
+    closeModal('modalEdit');
+
+    // Re-render
+    if (document.getElementById('pageAtt').classList.contains('active')) {
+      initAttPage();
+    }
+  } catch (err) {
+    showToast('❌ Gagal: ' + err.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '💾 Simpan Perubahan';
+}
+
+// ── SUBMIT BATCH ──────────────────────────────────────────────
+function updateSubmitBar() {
+  const n   = Object.keys(pendingChanges).length;
+  const bar = document.getElementById('submitBar');
+  const btn = document.getElementById('submitBtn');
+  bar.style.display = n > 0 ? 'block' : 'none';
+  btn.textContent = `Simpan ${n} perubahan`;
+}
+
+async function submitBatch() {
+  const changes = Object.entries(pendingChanges).map(([nama, c]) => ({
+    nama, status_hadir: c.status_hadir, alasan: c.alasan || ''
+  }));
+  if (!changes.length) return;
+
+  if (!confirm(`Simpan ${changes.length} perubahan absensi?`)) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    // Build upsert data
+    const upsertData = changes.map(c => ({
+      tanggal: selectedDate,
+      nama: c.nama,
+      ibadah: SERVICES[currentService],
+      status_hadir: c.status_hadir,
+      alasan: c.alasan
+    }));
+
+    await SB.upsert('absensi', upsertData);
+
+    showToast(`✅ ${changes.length} data tersimpan`, 'success');
+    pendingChanges = {};
+    updateSubmitBar();
+
+    // Update RAW locally
+    changes.forEach(c => {
+      const svc = SERVICES[currentService];
+      if (!RAW.absensi_map[c.nama]) RAW.absensi_map[c.nama] = {};
+      if (!RAW.absensi_map[c.nama][svc]) RAW.absensi_map[c.nama][svc] = {};
+      RAW.absensi_map[c.nama][svc][selectedDate] = { status_hadir: c.status_hadir, alasan: c.alasan };
+    });
+    renderMembers();
+  } catch(err) {
+    showToast('❌ Gagal simpan: ' + err.message, 'error');
+  }
+
+  btn.disabled = false;
+  updateSubmitBar();
+}
+
+// ── FAB MENU ──────────────────────────────────────────────────
+function openFabMenu() {
+  document.getElementById('modalFab').classList.add('open');
+}
+function openAddTanggal() {
+  closeModal('modalFab');
+  const today = new Date();
+  const day   = today.getDay();
+  const diff  = day === 0 ? 7 : 7 - day;
+  const next  = new Date(today.getTime() + diff * 86400000);
+  document.getElementById('newTanggal').value = next.toISOString().split('T')[0];
+  document.getElementById('newTanggalIbadah').value = SERVICES[currentService];
+  document.getElementById('modalTanggal').classList.add('open');
+}
+function openAddJemaat() {
+  closeModal('modalFab');
+  // [FIX] Reset form
+  document.getElementById('newNama').value = '';
+  document.getElementById('newHpWa').value = '';
+  document.getElementById('newTglLahir').value = '';
+  document.getElementById('newKomisi').selectedIndex = 0;
+  document.getElementById('newIbadah').selectedIndex = 0;
+  document.getElementById('newJenisKelamin').selectedIndex = 0;
+  document.getElementById('modalJemaat').classList.add('open');
+}
+function closeModal(id, e) {
+  if (e && e.target !== document.getElementById(id)) return;
+  document.getElementById(id).classList.remove('open');
+}
+
+async function submitAddTanggal() {
+  const tanggal = document.getElementById('newTanggal').value;
+  const ibadah  = document.getElementById('newTanggalIbadah').value;
+  if (!tanggal) { showToast('Pilih tanggal dulu', 'error'); return; }
+
+  const btn = document.getElementById('addTanggalBtn');
+  btn.disabled = true; btn.textContent = 'Menambahkan...';
+
+  try {
+    // Insert absensi records for all relevant members with "Absen"
+    const members = RAW.jemaat.filter(m => {
+      const ib = (m.ibadah || '').toLowerCase();
+      return ib === ibadah.toLowerCase() || ib === 'keduanya' || ib === '';
+    });
+
+    const records = members.map(m => ({
+      tanggal, nama: m.nama, ibadah, status_hadir: 'Absen', alasan: ''
+    }));
+
+    if (records.length) {
+      // Batch insert in chunks of 100
+      for (let i = 0; i < records.length; i += 100) {
+        await SB.upsert('absensi', records.slice(i, i + 100));
+      }
+    }
+
+    showToast('✅ Tanggal ditambahkan!', 'success');
+    closeModal('modalTanggal');
+    loadData();
+  } catch(err) {
+    showToast('❌ Gagal: ' + err.message, 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Tambah Tanggal';
+}
+
+async function submitAddJemaat() {
+  const nama = document.getElementById('newNama').value.trim().toUpperCase();
+  if (!nama) { showToast('Nama tidak boleh kosong', 'error'); return; }
+
+  const btn = document.getElementById('addJemaatBtn');
+  btn.disabled = true; btn.textContent = 'Mendaftarkan...';
+
+  try {
+    await SB.insert('jemaat', {
+      nama,
+      nama_lengkap: '',
+      nickname: '',
+      komisi: document.getElementById('newKomisi').value,
+      ibadah: document.getElementById('newIbadah').value,
+      status: 'Aktif',
+      jenis_kelamin: document.getElementById('newJenisKelamin').value,
+      hp_wa: document.getElementById('newHpWa').value.trim(),
+      keluarga_id: '',
+      keluarga_nama: '',
+      tgl_lahir: document.getElementById('newTglLahir').value
+                   ? formatTglLahir(document.getElementById('newTglLahir').value) : ''
+    });
+
+    showToast('✅ Jemaat ditambahkan!', 'success');
+    closeModal('modalJemaat');
+    loadData();
+  } catch(err) {
+    showToast('❌ Gagal: ' + err.message, 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Tambah Jemaat';
+}
+
+function formatTglLahir(val) {
+  if (!val) return '';
+  const parts = val.split('-');
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return val;
+}
+
+// ── PAGE SWITCHING ────────────────────────────────────────────
+function switchPage(page) {
+  document.getElementById('tabAtt').classList.toggle('active', page==='att');
+  document.getElementById('tabDash').classList.toggle('active', page==='dash');
+  document.getElementById('tabReport').classList.toggle('active', page==='report');
+  document.getElementById('pageAtt').classList.toggle('active', page==='att');
+  document.getElementById('pageDash').classList.toggle('active', page==='dash');
+  document.getElementById('pageReport').classList.toggle('active', page==='report');
+  document.getElementById('fabBtn').style.display = page==='att' ? 'flex' : 'none';
+  if (page === 'dash' && RAW) renderDashboard();
+  if (page === 'report' && RAW) renderReport();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDashboard() {
+  if (!RAW) return;
+  const bulanIni = new Date().getMonth() + 1;
+  const content  = document.getElementById('dashContent');
+
+  const allMembers = RAW.jemaat;
+  const ib1Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 1'||ib==='keduanya'||ib===''; });
+  const ib2Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 2'||ib==='keduanya'||ib===''; });
+
+  function getRate(members, svc) {
+    const dates = RAW.tanggals[svc] || [];
+    if (!dates.length) return 0;
+    const lastDate = dates[dates.length-1];
+    const hadirN   = members.filter(m => {
+      return (RAW.absensi_map[m.nama]||{})[svc]?.[lastDate]?.status_hadir === 'Hadir';
+    }).length;
+    return Math.round(hadirN / members.length * 100);
+  }
+
+  // Alert: absen 3x berturut-turut — [FIX] show ALL, not just 10
+  const alertList = [];
+  allMembers.forEach(m => {
+    ['Ibadah 1','Ibadah 2'].forEach(svc => {
+      const dates  = RAW.tanggals[svc] || [];
+      const svcMap = (RAW.absensi_map[m.nama]||{})[svc]||{};
+      let streak = 0;
+      for (let i = dates.length-1; i>=0; i--) {
+        const st = svcMap[dates[i]]?.status_hadir || 'Absen';
+        if (st !== 'Hadir') streak++; else break;
+      }
+      if (streak >= 3) {
+        const exists = alertList.find(a => a.nama===m.nama && a.svc===svc);
+        if (!exists) alertList.push({ ...m, svc, streak });
+      }
+    });
+  });
+
+  const bdayList = allMembers.filter(m => getBulanLahir(m) === bulanIni);
+
+  // Chart data: Ibadah 1 AND Ibadah 2
+  function buildChartData(members, svc) {
+    const dates = RAW.tanggals[svc] || [];
+    return dates.map(date => {
+      const hadirN = members.filter(m => {
+        return (RAW.absensi_map[m.nama]||{})[svc]?.[date]?.status_hadir === 'Hadir';
+      }).length;
+      const dt = new Date(date + 'T00:00:00');
+      return { label: dt.getDate() + ' ' + BULAN_NAMES[dt.getMonth()+1], val: hadirN, max: members.length };
+    });
+  }
+
+  const chart1 = buildChartData(ib1Members, 'Ibadah 1');
+  const chart2 = buildChartData(ib2Members, 'Ibadah 2');
+  const maxVal1 = Math.max(...chart1.map(d=>d.val), 1);
+  const maxVal2 = Math.max(...chart2.map(d=>d.val), 1);
+
+  function renderChart(data, maxVal) {
+    return data.map((d,i) => `
+      <div class="chart-bar-wrap">
+        <div class="chart-bar-val">${d.val}</div>
+        <div class="chart-bar ${i===data.length-1?'latest':''}"
+          style="height:${Math.round(d.val/maxVal*80)+4}px"></div>
+        <div class="chart-bar-label">${d.label}</div>
+      </div>`).join('');
+  }
+
+  const komisiMap = {};
+  allMembers.forEach(m => { komisiMap[m.komisi] = (komisiMap[m.komisi]||0) + 1; });
+  const komisiArr = Object.entries(komisiMap).sort((a,b)=>b[1]-a[1]);
+  const maxKom    = komisiArr[0]?.[1] || 1;
+
+  const rate1 = getRate(ib1Members, 'Ibadah 1');
+  const rate2 = getRate(ib2Members, 'Ibadah 2');
+
+  content.innerHTML = `
+    <div class="dash-section-title">Kehadiran Minggu Ini</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-num" style="color:var(--teal)">${ib1Members.length}</div>
+        <div class="stat-card-label">Total Ibadah 1</div>
+        <div class="stat-card-sub" style="color:var(--green)">${rate1}% hadir</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-num" style="color:var(--blue)">${ib2Members.length}</div>
+        <div class="stat-card-label">Total Ibadah 2</div>
+        <div class="stat-card-sub" style="color:var(--green)">${rate2}% hadir</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-num" style="color:var(--red)">${alertList.length}</div>
+        <div class="stat-card-label">Perlu Perhatian</div>
+        <div class="stat-card-sub">Absen 3x+</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-num" style="color:var(--purple)">${bdayList.length}</div>
+        <div class="stat-card-label">🎂 Ulang Tahun</div>
+        <div class="stat-card-sub">Bulan ini</div>
+      </div>
+    </div>
+
+    ${alertList.length ? `
+    <div class="dash-section-title">⚠️ Perlu Dikunjungi (${alertList.length} orang)</div>
+    <div class="alert-list">
+      ${alertList.map(m => {
+        const init = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+        const wa = m.hp_wa
+          ? `<a class="alert-wa" href="https://wa.me/${m.hp_wa.replace(/\D/g,'')}" target="_blank">💬</a>`
+          : '';
+        return `<div class="alert-card">
+          <div class="alert-avatar">${esc(init)}</div>
+          <div class="alert-info">
+            <div class="alert-name">${esc(m.nama)}</div>
+            <div class="alert-detail">Absen ${m.streak}x berturut · ${esc(m.svc)}</div>
+          </div>
+          ${wa}
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    ${bdayList.length ? `
+    <div class="dash-section-title">🎂 Ulang Tahun ${BULAN_FULL[bulanIni]}</div>
+    <div class="bday-list">
+      ${bdayList.map(m => {
+        return `<div class="bday-card">
+          <div class="bday-avatar">🎂</div>
+          <div>
+            <div class="bday-name">${esc(m.nama)}</div>
+            <div class="bday-komisi">${esc(m.komisi)} · ${esc(m.ibadah)}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    ${chart1.length ? `
+    <div class="dash-section-title">Tren Kehadiran Ibadah 1</div>
+    <div class="chart-wrap">
+      <div class="chart-bars">${renderChart(chart1, maxVal1)}</div>
+    </div>` : ''}
+
+    ${chart2.length ? `
+    <div class="dash-section-title">Tren Kehadiran Ibadah 2</div>
+    <div class="chart-wrap">
+      <div class="chart-bars">${renderChart(chart2, maxVal2)}</div>
+    </div>` : ''}
+
+    <div class="dash-section-title">Distribusi Komisi</div>
+    <div class="chart-wrap">
+      <div class="komisi-list">
+        ${komisiArr.map(([k,v]) => `
+          <div class="komisi-row">
+            <div class="komisi-name">${esc(k)}</div>
+            <div class="komisi-bar-wrap">
+              <div class="komisi-bar" style="width:${Math.round(v/maxKom*100)}%"></div>
+            </div>
+            <div class="komisi-count">${v}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div style="height:20px;"></div>`;
+}
+
+// ── REPORT ────────────────────────────────────────────────────
+function renderReport() {
+  if (!RAW) return;
+  const content = document.getElementById('reportContent');
+
+  // Get all available dates (union of both services)
+  const allDates = [...new Set([
+    ...(RAW.tanggals['Ibadah 1'] || []),
+    ...(RAW.tanggals['Ibadah 2'] || [])
+  ])].sort();
+
+  if (!allDates.length) {
+    content.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Belum ada data</div></div>';
+    return;
+  }
+
+  const latestDate = allDates[allDates.length - 1];
+
+  // Date selector
+  const dateOptions = allDates.slice().reverse().map(d => {
+    const dt = new Date(d + 'T00:00:00');
+    const label = dt.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    return `<option value="${d}" ${d===latestDate?'selected':''}>${label}</option>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="report-date-selector">
+      <label>Pilih Tanggal Ibadah</label>
+      <select onchange="renderReportForDate(this.value)" id="reportDateSelect">${dateOptions}</select>
+    </div>
+    <div id="reportBody"></div>
+  `;
+
+  renderReportForDate(latestDate);
+}
+
+function renderReportForDate(date) {
+  const body = document.getElementById('reportBody');
+  const allMembers = RAW.jemaat;
+  const dates1 = RAW.tanggals['Ibadah 1'] || [];
+  const dates2 = RAW.tanggals['Ibadah 2'] || [];
+  const hasIb1 = dates1.includes(date);
+  const hasIb2 = dates2.includes(date);
+
+  // Categorize members
+  const ib1Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 1'||ib==='keduanya'||ib===''; });
+  const ib2Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 2'||ib==='keduanya'||ib===''; });
+
+  // Get attendance for this date
+  function getStatus(nama, svc) {
+    return (RAW.absensi_map[nama]||{})[svc]?.[date]?.status_hadir || 'Absen';
+  }
+
+  // 1. Hadir Ibadah 1
+  const hadirIb1 = hasIb1 ? ib1Members.filter(m => getStatus(m.nama, 'Ibadah 1') === 'Hadir') : [];
+  const absenIb1 = hasIb1 ? ib1Members.filter(m => getStatus(m.nama, 'Ibadah 1') !== 'Hadir') : [];
+  const hadirIb2 = hasIb2 ? ib2Members.filter(m => getStatus(m.nama, 'Ibadah 2') === 'Hadir') : [];
+  const absenIb2 = hasIb2 ? ib2Members.filter(m => getStatus(m.nama, 'Ibadah 2') !== 'Hadir') : [];
+
+  // 2. Tidak hadir kedua ibadah
+  const absenKeduanya = allMembers.filter(m => {
+    const ib = (m.ibadah||'').toLowerCase();
+    const inIb1 = ib==='ibadah 1'||ib==='keduanya'||ib==='';
+    const inIb2 = ib==='ibadah 2'||ib==='keduanya'||ib==='';
+    const hadirAny =
+      (inIb1 && hasIb1 && getStatus(m.nama, 'Ibadah 1') === 'Hadir') ||
+      (inIb2 && hasIb2 && getStatus(m.nama, 'Ibadah 2') === 'Hadir');
+    return !hadirAny;
+  });
+
+  // 3. Anak hadir / non-anak hadir
+  const anakHadirIb1 = hadirIb1.filter(m => isAnak(m));
+  const nonAnakHadirIb1 = hadirIb1.filter(m => !isAnak(m));
+  const anakHadirIb2 = hadirIb2.filter(m => isAnak(m));
+  const nonAnakHadirIb2 = hadirIb2.filter(m => !isAnak(m));
+
+  // Total unique hadir (any service)
+  const hadirAnySet = new Set();
+  hadirIb1.forEach(m => hadirAnySet.add(m.nama));
+  hadirIb2.forEach(m => hadirAnySet.add(m.nama));
+  const totalUniqueHadir = hadirAnySet.size;
+
+  function memberRows(list) {
+    if (!list.length) return '<div style="color:var(--ink-4);font-size:13px;padding:8px 0;">Tidak ada</div>';
+    return list.map((m,i) => `
+      <div class="report-member-row">
+        <div class="report-member-num">${i+1}</div>
+        <div class="report-member-name">${esc(m.nama)}</div>
+        <div class="report-member-komisi">${esc(m.komisi)}</div>
+      </div>`).join('');
+  }
+
+  function toggleCard(el) {
+    el.closest('.report-card').classList.toggle('open');
+  }
+
+  body.innerHTML = `
+    <!-- Summary -->
+    <div class="report-summary-grid">
+      <div class="report-summary-card">
+        <div class="report-summary-num" style="color:var(--green)">${totalUniqueHadir}</div>
+        <div class="report-summary-label">Total Hadir</div>
+        <div class="report-summary-sub">Gabungan kedua ibadah</div>
+      </div>
+      <div class="report-summary-card">
+        <div class="report-summary-num" style="color:var(--red)">${absenKeduanya.length}</div>
+        <div class="report-summary-label">Absen Keduanya</div>
+        <div class="report-summary-sub">Tidak hadir sama sekali</div>
+      </div>
+      ${hasIb1 ? `
+      <div class="report-summary-card">
+        <div class="report-summary-num" style="color:var(--teal)">${hadirIb1.length}</div>
+        <div class="report-summary-label">Hadir Ibadah 1</div>
+        <div class="report-summary-sub">Anak: ${anakHadirIb1.length} · Dewasa: ${nonAnakHadirIb1.length}</div>
+      </div>` : ''}
+      ${hasIb2 ? `
+      <div class="report-summary-card">
+        <div class="report-summary-num" style="color:var(--blue)">${hadirIb2.length}</div>
+        <div class="report-summary-label">Hadir Ibadah 2</div>
+        <div class="report-summary-sub">Anak: ${anakHadirIb2.length} · Dewasa: ${nonAnakHadirIb2.length}</div>
+      </div>` : ''}
+    </div>
+
+    <!-- Tidak hadir kedua ibadah -->
+    <div class="report-card open">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          🚫 Tidak Hadir Kedua Ibadah
+          <span class="report-card-badge" style="background:var(--red-l);color:var(--red);">${absenKeduanya.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(absenKeduanya)}</div>
+    </div>
+
+    ${hasIb1 ? `
+    <!-- Hadir Ibadah 1 — Anak -->
+    <div class="report-card">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          👶 Anak Hadir Ibadah 1
+          <span class="report-card-badge" style="background:var(--purple-l);color:var(--purple);">${anakHadirIb1.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(anakHadirIb1)}</div>
+    </div>
+
+    <!-- Hadir Ibadah 1 — Non-Anak -->
+    <div class="report-card">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          👥 Dewasa Hadir Ibadah 1
+          <span class="report-card-badge" style="background:var(--teal-l);color:var(--teal);">${nonAnakHadirIb1.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(nonAnakHadirIb1)}</div>
+    </div>
+
+    <!-- Absen Ibadah 1 -->
+    <div class="report-card">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          ✗ Absen Ibadah 1
+          <span class="report-card-badge" style="background:var(--amber-l);color:var(--amber);">${absenIb1.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(absenIb1)}</div>
+    </div>` : ''}
+
+    ${hasIb2 ? `
+    <!-- Hadir Ibadah 2 — Anak -->
+    <div class="report-card">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          👶 Anak Hadir Ibadah 2
+          <span class="report-card-badge" style="background:var(--purple-l);color:var(--purple);">${anakHadirIb2.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(anakHadirIb2)}</div>
+    </div>
+
+    <!-- Hadir Ibadah 2 — Non-Anak -->
+    <div class="report-card">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          👥 Dewasa Hadir Ibadah 2
+          <span class="report-card-badge" style="background:var(--blue-l);color:var(--blue);">${nonAnakHadirIb2.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(nonAnakHadirIb2)}</div>
+    </div>
+
+    <!-- Absen Ibadah 2 -->
+    <div class="report-card">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          ✗ Absen Ibadah 2
+          <span class="report-card-badge" style="background:var(--amber-l);color:var(--amber);">${absenIb2.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(absenIb2)}</div>
+    </div>` : ''}
+
+    <div style="height:20px;"></div>
+  `;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function showLoading(text='Memuat...') {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('show');
+}
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className='toast', 3000);
+}
 </script>
 </body>
 </html>
