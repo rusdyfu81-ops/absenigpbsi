@@ -51,6 +51,93 @@ body {
 .screen { display: none; min-height: 100vh; }
 .screen.active { display: flex; flex-direction: column; }
 
+/* ── SETUP SCREEN ── */
+#setupScreen {
+  background: var(--bg);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.setup-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 420px;
+}
+.setup-logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.setup-logo-icon { font-size: 40px; margin-bottom: 8px; }
+.setup-logo h1 { font-size: 22px; font-weight: 800; color: var(--teal); margin-bottom: 4px; }
+.setup-logo p { font-size: 13px; color: var(--ink-3); }
+.setup-field { margin-bottom: 16px; }
+.setup-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.setup-field input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--ink);
+  background: var(--bg);
+  outline: none;
+  transition: border-color .2s;
+}
+.setup-field input:focus { border-color: var(--teal); }
+.setup-field input.err { border-color: var(--red); }
+.setup-hint {
+  font-size: 11px;
+  color: var(--ink-4);
+  margin-top: 5px;
+  line-height: 1.4;
+}
+.setup-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background .2s;
+}
+.setup-btn:hover { background: var(--teal-d); }
+.setup-btn:disabled { background: var(--ink-4); cursor: not-allowed; }
+.setup-error {
+  font-size: 13px;
+  color: var(--red);
+  text-align: center;
+  margin-top: 12px;
+  min-height: 20px;
+}
+.setup-reset {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--ink-4);
+}
+.setup-reset a {
+  color: var(--teal);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 /* ── PIN SCREEN ── */
 #pinScreen {
   background: linear-gradient(145deg, #0f1923 0%, #0d3d35 60%, #0d9488 100%);
@@ -829,6 +916,29 @@ body {
 </head>
 <body>
 
+<!-- SETUP SCREEN -->
+<div id="setupScreen" class="screen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="setup-logo-icon">⛪</div>
+      <h1>GPBSI</h1>
+      <p>Konfigurasi Koneksi Supabase</p>
+    </div>
+    <div class="setup-field">
+      <label>Supabase URL</label>
+      <input type="url" id="setupUrl" placeholder="https://xxxx.supabase.co" autocomplete="off" spellcheck="false">
+      <div class="setup-hint">Dari Supabase → Project Settings → API → Project URL</div>
+    </div>
+    <div class="setup-field">
+      <label>Anon / Public Key</label>
+      <input type="password" id="setupKey" placeholder="eyJhbGci..." autocomplete="off" spellcheck="false">
+      <div class="setup-hint">Dari Supabase → Project Settings → API → anon public</div>
+    </div>
+    <button class="setup-btn" id="setupBtn" onclick="saveSetup()">Sambungkan</button>
+    <div class="setup-error" id="setupError"></div>
+  </div>
+</div>
+
 <!-- PIN SCREEN -->
 <div id="pinScreen" class="screen active">
   <div class="pin-logo">
@@ -910,7 +1020,7 @@ body {
       <div class="filter-scroll" id="komisiFilter"></div>
       <div class="filter-scroll" id="keluargaFilter" style="margin-bottom:10px;"></div>
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Cari nama jemaat..." oninput="renderMembers()">
+        <input type="text" id="searchInput" placeholder="Cari nama jemaat..." oninput="debouncedRender()">
       </div>
     </div>
     <div class="member-list" id="memberList"></div>
@@ -997,10 +1107,7 @@ body {
         <select class="form-select" id="editKomisi">
           <option value="">— Tidak diisi —</option>
           <option>ANAK</option><option>KOMPRI</option><option>KOMWAN</option>
-          <option>KOOR</option><option>PEMUDA</option><option>PENATUA</option>
-          <option>PENDETA</option><option>PRIA</option><option>REMAJA</option>
-          <option>SENIOR</option><option>STAFF</option><option>TIMOTIUS</option>
-          <option>WANITA</option><option>YESYURUN</option><option>LAINNYA</option>
+          <option>PEMUDA</option><option>REMAJA</option><option>TAMU</option>
         </select>
       </div>
       <div class="form-group">
@@ -1032,6 +1139,11 @@ body {
         <input type="text" class="form-input" id="editTglLahir" placeholder="DD/MM/YYYY">
       </div>
       <button class="form-btn" id="editSaveBtn" onclick="saveEditProfile()">💾 Simpan Perubahan</button>
+      <div style="height:16px;"></div>
+      <div style="border-top:1px solid var(--border);padding-top:16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px;">ZONA BAHAYA</div>
+        <button onclick="deleteJemaat()" style="width:100%;height:44px;background:var(--red-l);color:var(--red);border:1.5px solid var(--red);border-radius:10px;font-size:13px;font-weight:800;font-family:var(--font);cursor:pointer;">🗑️ Hapus Jemaat Ini</button>
+      </div>
       <div style="height:12px;"></div>
     </div>
   </div>
@@ -1074,10 +1186,7 @@ body {
         <label class="form-label">Komisi</label>
         <select class="form-select" id="newKomisi">
           <option>ANAK</option><option>KOMPRI</option><option>KOMWAN</option>
-          <option>KOOR</option><option>PEMUDA</option><option>PENATUA</option>
-          <option>PENDETA</option><option>PRIA</option><option>REMAJA</option>
-          <option>SENIOR</option><option>STAFF</option><option>TIMOTIUS</option>
-          <option>WANITA</option><option>YESYURUN</option><option>LAINNYA</option>
+          <option>PEMUDA</option><option>REMAJA</option><option>TAMU</option>
         </select>
       </div>
       <div class="form-group">
@@ -1131,7 +1240,75 @@ body {
             <div style="font-size:12px;color:var(--ink-3);margin-top:2px;">Daftarkan anggota baru</div>
           </div>
         </div>
+        <div onclick="closeModal('modalFab');doBackup();" style="padding:16px;background:var(--amber-l);border:1.5px solid #fde68a;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;">💾</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;">Backup Data</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:2px;" id="fabBackupSub">Export semua data ke JSON</div>
+          </div>
+        </div>
+        <div onclick="closeModal('modalFab');document.getElementById('modalSettings').classList.add('open');document.getElementById('displayUrl').textContent=SUPABASE_URL||'—';updateBackupLabel();" style="padding:16px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;">⚙️</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;">Pengaturan</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:2px;">Ganti PIN & pengaturan tahun</div>
+          </div>
+        </div>
       </div>
+      <div style="height:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Settings -->
+<div class="modal-overlay" id="modalSettings" onclick="closeModal('modalSettings', event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div style="font-size:17px;font-weight:800;margin-bottom:20px;">⚙️ Pengaturan</div>
+      
+      <!-- Ganti PIN -->
+      <div style="font-size:13px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Ganti PIN</div>
+      <div class="form-group">
+        <label class="form-label">PIN Lama (4 digit)</label>
+        <input type="password" class="form-input" id="settOldPin" maxlength="4" placeholder="****" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PIN Baru (4 digit)</label>
+        <input type="password" class="form-input" id="settNewPin" maxlength="4" placeholder="****" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Konfirmasi PIN Baru</label>
+        <input type="password" class="form-input" id="settConfirmPin" maxlength="4" placeholder="****" inputmode="numeric">
+      </div>
+      <button class="form-btn" id="changePinBtn" onclick="changePin()">🔒 Ganti PIN</button>
+
+      <div style="height:20px;"></div>
+
+      <!-- Tahun Aktif -->
+      <div style="font-size:13px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Tahun Aktif</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select class="form-select" id="settTahun" style="flex:1;"></select>
+        <button class="form-btn" style="width:auto;padding:0 20px;" onclick="changeTahun()">Terapkan</button>
+      </div>
+      <div style="font-size:11px;color:var(--ink-4);margin-top:6px;">Hanya tampilkan data absensi untuk tahun yang dipilih.</div>
+
+      <!-- Backup Data -->
+      <div style="height:20px;"></div>
+      <div style="font-size:13px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Backup Data</div>
+      <div style="font-size:12px;color:var(--ink-3);margin-bottom:10px;">Backup terakhir: <span id="lastBackupLabel" style="font-weight:700;color:var(--ink-2);">—</span></div>
+      <button onclick="doBackup()" style="width:100%;padding:12px;background:var(--amber-l);color:#92400e;border:1.5px solid #fde68a;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;">💾 Backup Sekarang (JSON)</button>
+      <div style="font-size:11px;color:var(--ink-4);margin-top:6px;">Menyimpan seluruh data jemaat & absensi ke file JSON di perangkat Anda.</div>
+
+      <div style="height:20px;"></div>
+
+      <!-- Koneksi Supabase -->
+      <div style="font-size:13px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Koneksi Supabase</div>
+      <div style="font-size:12px;color:var(--ink-3);margin-bottom:4px;">URL:</div>
+      <div style="font-size:12px;font-family:var(--mono);color:var(--ink-2);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;word-break:break-all;margin-bottom:12px;" id="displayUrl">—</div>
+      <button onclick="resetSetup()" style="width:100%;padding:12px;background:var(--red-l);color:var(--red);border:1.5px solid var(--red);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;">🔌 Ganti / Reset Koneksi</button>
+      <div style="font-size:11px;color:var(--ink-4);margin-top:6px;">URL dan Key akan dihapus dari perangkat ini. Perlu input ulang saat buka app.</div>
+
       <div style="height:12px;"></div>
     </div>
   </div>
@@ -1148,9 +1325,9 @@ body {
 
 <script>
 // ── SUPABASE CONFIG ─────────────────────────────────────────
-// GANTI DENGAN URL DAN KEY SUPABASE ANDA:
-const SUPABASE_URL = 'https://gpuwlnknswprjtavrqsv.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdwdXdsbmtuc3dwcmp0YXZycXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NDM1NjAsImV4cCI6MjA4OTAxOTU2MH0.JOr7dc_y9WZYZnQRVwF5qxKVW8ZdXOWSi42LsgIsPRk';
+// Dibaca dari localStorage (diset via Setup Screen, tidak hard-coded)
+let SUPABASE_URL = localStorage.getItem('gpbsi_url') || '';
+let SUPABASE_KEY = localStorage.getItem('gpbsi_key') || '';
 
 const SERVICES   = ['Ibadah 1', 'Ibadah 2'];
 const BULAN_NAMES = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -1173,10 +1350,11 @@ const SB = {
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   },
-  async upsert(table, data) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+  async upsert(table, data, onConflict) {
+    const qs = onConflict ? `?on_conflict=${onConflict}` : '';
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${qs}`, {
       method: 'POST',
-      headers: { ...this.headers(), 'Prefer': 'resolution=merge-duplicates' },
+      headers: { ...this.headers(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error(await res.text());
@@ -1199,6 +1377,14 @@ const SB = {
     });
     if (!res.ok) throw new Error(await res.text());
     return res;
+  },
+  async delete(table, filter) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+      method: 'DELETE',
+      headers: { ...this.headers(), 'Prefer': 'return=minimal' }
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res;
   }
 };
 
@@ -1216,6 +1402,87 @@ let alasanTarget   = null;
 let alasanSelected = '';
 let alasanPrevState = null;
 
+// J-09: Debounce search
+let searchTimer;
+function debouncedRender() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(renderMembers, 200);
+}
+
+// J-06: Peringatan navigasi saat ada pending changes
+// ── J-01: SETUP SCREEN ──────────────────────────────────────
+function initApp() {
+  if (!SUPABASE_URL || !SUPABASE_KEY ||
+      SUPABASE_URL === 'https://YOUR_PROJECT.supabase.co') {
+    // Belum ada config → tampilkan setup screen
+    document.getElementById('setupScreen').classList.add('active');
+    document.getElementById('pinScreen').classList.remove('active');
+  }
+  // Kalau sudah ada config, pinScreen sudah active by default (HTML)
+}
+
+async function saveSetup() {
+  const url = document.getElementById('setupUrl').value.trim();
+  const key = document.getElementById('setupKey').value.trim();
+  const errEl = document.getElementById('setupError');
+  const btn = document.getElementById('setupBtn');
+
+  errEl.textContent = '';
+  document.getElementById('setupUrl').classList.remove('err');
+  document.getElementById('setupKey').classList.remove('err');
+
+  if (!url || !url.startsWith('https://')) {
+    document.getElementById('setupUrl').classList.add('err');
+    errEl.textContent = 'URL tidak valid. Harus diawali https://';
+    return;
+  }
+  if (!key || key.length < 20) {
+    document.getElementById('setupKey').classList.add('err');
+    errEl.textContent = 'API Key terlalu pendek atau kosong.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Menguji koneksi...';
+
+  try {
+    // Test koneksi: coba fetch tabel config
+    const testRes = await fetch(`${url}/rest/v1/config?key=eq.pin&select=key`, {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+    });
+    if (!testRes.ok) throw new Error(`HTTP ${testRes.status}`);
+
+    // Simpan ke localStorage
+    localStorage.setItem('gpbsi_url', url);
+    localStorage.setItem('gpbsi_key', key);
+    SUPABASE_URL = url;
+    SUPABASE_KEY = key;
+
+    // Pindah ke PIN screen
+    document.getElementById('setupScreen').classList.remove('active');
+    document.getElementById('pinScreen').classList.add('active');
+  } catch(e) {
+    errEl.textContent = 'Koneksi gagal. Periksa URL dan Key, lalu coba lagi.';
+    btn.disabled = false;
+    btn.textContent = 'Sambungkan';
+  }
+}
+
+// Dipanggil dari Settings untuk reset koneksi
+function resetSetup() {
+  if (!confirm('Reset koneksi? URL dan Key akan dihapus dari perangkat ini.')) return;
+  localStorage.removeItem('gpbsi_url');
+  localStorage.removeItem('gpbsi_key');
+  location.reload();
+}
+
+window.onbeforeunload = (e) => {
+  if (Object.keys(pendingChanges).length > 0) {
+    e.preventDefault();
+    return 'Ada perubahan yang belum disimpan!';
+  }
+};
+
 // ── HELPER: safe HTML escape ─────────────────────────────────
 function esc(str) {
   const d = document.createElement('div');
@@ -1223,8 +1490,21 @@ function esc(str) {
   return d.innerHTML;
 }
 
+// J-04: SHA-256 hash for PIN
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
 // ── PIN ──────────────────────────────────────────────────────
 function pinInput(d) {
+  // J-05: Check lockout
+  const lockout = parseInt(localStorage.getItem('pinLockoutUntil') || '0');
+  if (Date.now() < lockout) {
+    const secs = Math.ceil((lockout - Date.now()) / 1000);
+    document.getElementById('pinError').textContent = `Terkunci. Coba lagi dalam ${secs} detik.`;
+    return;
+  }
   if (PIN.length >= 4) return;
   PIN += d;
   updatePinDots();
@@ -1242,14 +1522,45 @@ function updatePinDots() {
   });
 }
 
-// PIN verification via Supabase
+// J-04: PIN verification with SHA-256 hash
 async function verifyPin() {
+  // J-05: Check lockout first
+  const lockout = parseInt(localStorage.getItem('pinLockoutUntil') || '0');
+  if (Date.now() < lockout) {
+    pinError();
+    return;
+  }
   try {
+    const hashedInput = await sha256(PIN);
     const data = await SB.get('config', 'key=eq.pin&select=value');
-    if (data.length && data[0].value === PIN) {
+    if (data.length && data[0].value === hashedInput) {
+      // J-05: Reset fail counter on success
+      localStorage.setItem('pinFailCount', '0');
       onPinOk();
     } else {
-      pinError();
+      // J-05: Increment fail counter
+      let fails = parseInt(localStorage.getItem('pinFailCount') || '0') + 1;
+      localStorage.setItem('pinFailCount', String(fails));
+      if (fails >= 5) {
+        const lockUntil = Date.now() + 60000; // 60 seconds lockout
+        localStorage.setItem('pinLockoutUntil', String(lockUntil));
+        pinError();
+        document.getElementById('pinError').textContent = 'Terlalu banyak percobaan. Tunggu 60 detik.';
+        // Start countdown
+        const iv = setInterval(() => {
+          const remain = Math.ceil((lockUntil - Date.now()) / 1000);
+          if (remain <= 0) {
+            clearInterval(iv);
+            document.getElementById('pinError').textContent = '';
+            localStorage.setItem('pinFailCount', '0');
+          } else {
+            document.getElementById('pinError').textContent = `Terkunci. Coba lagi dalam ${remain} detik.`;
+          }
+        }, 1000);
+      } else {
+        pinError();
+        document.getElementById('pinError').textContent = `PIN salah. Sisa ${5 - fails}x percobaan.`;
+      }
     }
   } catch {
     pinError();
@@ -1277,28 +1588,32 @@ function pinError() {
 // ── LOAD DATA (Supabase) ──────────────────────────────────────
 async function loadData() {
   showLoading('Memuat data jemaat...');
+
+  // J-03: Load saved tahun
+  const savedTahun = localStorage.getItem('gpbsi_tahun');
+  if (savedTahun) TAHUN_AKTIF = parseInt(savedTahun);
+
   try {
-    // Fetch jemaat (under 1000, no pagination needed)
     const jemaatData = await SB.get('jemaat', 'select=*&order=nama');
 
-    // Fetch absensi with pagination (default limit = 1000)
+    // J-10: Filter absensi by year range
+    const yearStart = `${TAHUN_AKTIF}-01-01`;
+    const yearEnd = `${TAHUN_AKTIF}-12-31`;
     let absensiData = [];
     const PAGE_SIZE = 1000;
     let offset = 0;
     let hasMore = true;
     while (hasMore) {
       const batch = await SB.get('absensi',
-        `select=tanggal,nama,ibadah,status_hadir,alasan&order=tanggal&limit=${PAGE_SIZE}&offset=${offset}`
+        `select=tanggal,jemaat_id,ibadah,status_hadir,alasan&order=tanggal&tanggal=gte.${yearStart}&tanggal=lte.${yearEnd}&limit=${PAGE_SIZE}&offset=${offset}`
       );
       absensiData = absensiData.concat(batch);
       offset += PAGE_SIZE;
       hasMore = batch.length === PAGE_SIZE;
     }
 
-    // Build RAW structure
     const tanggals = {};
-    const absensi_map = {};
-
+    const absensi_map = {}; // absensi_map[jemaat_id][ibadah][tanggal]
     SERVICES.forEach(svc => { tanggals[svc] = []; });
 
     absensiData.forEach(r => {
@@ -1306,9 +1621,10 @@ async function loadData() {
       if (!tanggals[r.ibadah].includes(r.tanggal)) {
         tanggals[r.ibadah].push(r.tanggal);
       }
-      if (!absensi_map[r.nama]) absensi_map[r.nama] = {};
-      if (!absensi_map[r.nama][r.ibadah]) absensi_map[r.nama][r.ibadah] = {};
-      absensi_map[r.nama][r.ibadah][r.tanggal] = {
+      const key = r.jemaat_id;
+      if (!absensi_map[key]) absensi_map[key] = {};
+      if (!absensi_map[key][r.ibadah]) absensi_map[key][r.ibadah] = {};
+      absensi_map[key][r.ibadah][r.tanggal] = {
         status_hadir: r.status_hadir,
         alasan: r.alasan || ''
       };
@@ -1316,14 +1632,23 @@ async function loadData() {
 
     SERVICES.forEach(svc => { tanggals[svc].sort(); });
 
-    RAW = {
-      jemaat: jemaatData,
-      tanggals,
-      absensi_map
-    };
+    RAW = { jemaat: jemaatData, tanggals, absensi_map };
+
+    // J-03: Populate tahun selector in settings
+    const tahunSelect = document.getElementById('settTahun');
+    if (tahunSelect) {
+      const currentYear = new Date().getFullYear();
+      tahunSelect.innerHTML = '';
+      for (let y = currentYear + 1; y >= 2026; y--) {
+        tahunSelect.innerHTML += `<option value="${y}" ${y===TAHUN_AKTIF?'selected':''}>${y}</option>`;
+      }
+    }
 
     hideLoading();
     initAttPage();
+    // J-11: Cek backup reminder & update FAB label
+    checkBackupReminder();
+    updateFabBackupSub();
   } catch (err) {
     hideLoading();
     showToast('❌ Gagal memuat: ' + err.message, 'error');
@@ -1346,6 +1671,12 @@ function initAttPage() {
     chip.className = 'date-chip' + (i === dates.length-1 ? ' active' : '');
     chip.innerHTML = `<span class="day">${dt.getDate()}</span><span class="mon">${BULAN_NAMES[dt.getMonth()+1]}</span>`;
     chip.onclick = () => selectDate(date, chip);
+    // J-12: Long press to delete date
+    let pressTimer;
+    chip.addEventListener('touchstart', () => { pressTimer = setTimeout(() => deleteTanggal(date), 800); });
+    chip.addEventListener('touchend', () => clearTimeout(pressTimer));
+    chip.addEventListener('touchmove', () => clearTimeout(pressTimer));
+    chip.addEventListener('contextmenu', (e) => { e.preventDefault(); deleteTanggal(date); });
     scroll.appendChild(chip);
   });
 
@@ -1435,9 +1766,9 @@ function loadAttState() {
   const members = getServiceMembers();
   attState = {};
   members.forEach(m => {
-    const rec = (RAW.absensi_map[m.nama] || {})[svcName] || {};
+    const rec = (RAW.absensi_map[m.id] || {})[svcName] || {};
     const entry = rec[selectedDate];
-    attState[m.nama] = entry
+    attState[m.id] = entry
       ? { status: entry.status_hadir, alasan: entry.alasan || '' }
       : { status: 'Absen', alasan: '' };
   });
@@ -1504,7 +1835,7 @@ function renderMembers() {
     });
   }
 
-  const hadirCount = members.filter(m => attState[m.nama]?.status === 'Hadir').length;
+  const hadirCount = members.filter(m => attState[m.id]?.status === 'Hadir').length;
   document.getElementById('statHadir').textContent = hadirCount;
   document.getElementById('statAbsen').textContent  = members.length - hadirCount;
   document.getElementById('statTotal').textContent  = members.length;
@@ -1530,13 +1861,13 @@ function renderMembers() {
       }
     }
 
-    const state    = attState[m.nama] || { status:'Absen', alasan:'' };
+    const state    = attState[m.id] || { status:'Absen', alasan:'' };
     const isHadir  = state.status === 'Hadir';
     const alasan   = state.alasan || '';
     const initials = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
     const safe     = m.nama.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
 
-    const svcMap = (RAW.absensi_map[m.nama] || {})[svcName] || {};
+    const svcMap = (RAW.absensi_map[m.id] || {})[svcName] || {};
     const dates  = RAW.tanggals[svcName] || [];
     const hadirN = dates.filter(d => svcMap[d]?.status_hadir === 'Hadir').length;
     const rate   = dates.length ? Math.round(hadirN / dates.length * 100) : 0;
@@ -1558,8 +1889,8 @@ function renderMembers() {
     ].filter(Boolean).join(' ');
 
     return `${keluargaHeader}<div class="${cardClass}">
-      <div class="member-avatar" onclick="openMemberDetail('${safe}')">${esc(initials)}</div>
-      <div class="member-info" onclick="openMemberDetail('${safe}')">
+      <div class="member-avatar" onclick="openMemberDetail(${m.id})">${esc(initials)}</div>
+      <div class="member-info" onclick="openMemberDetail(${m.id})">
         <div class="member-name">
           ${esc(m.nama)}
           ${isBday ? '<span class="birthday-badge">🎂</span>' : ''}
@@ -1571,7 +1902,7 @@ function renderMembers() {
         </div>
       </div>
       <div class="toggle-wrap">
-        <div class="toggle ${isHadir?'on':''}" onclick="toggleMember('${safe}')"></div>
+        <div class="toggle ${isHadir?'on':''}" onclick="toggleMember(${m.id})"></div>
         ${!isHadir && alasan ? `<div class="alasan-tag">${esc(alasan)}</div>` : ''}
       </div>
     </div>`;
@@ -1579,27 +1910,27 @@ function renderMembers() {
 }
 
 // ── TOGGLE MEMBER ─────────────────────────────────────────────
-function toggleMember(nama) {
-  const cur = attState[nama] || { status:'Absen', alasan:'' };
+function toggleMember(jid) {
+  const cur = attState[jid] || { status:'Absen', alasan:'' };
   if (cur.status === 'Hadir') {
-    // [FIX] Save previous state before opening alasan modal
-    alasanPrevState = { nama, status: cur.status, alasan: cur.alasan };
-    attState[nama] = { status: 'Absen', alasan: '' };
-    pendingChanges[nama] = { status_hadir: 'Absen', alasan: '' };
-    openAlasanModal(nama);
+    alasanPrevState = { jid, status: cur.status, alasan: cur.alasan };
+    attState[jid] = { status: 'Absen', alasan: '' };
+    pendingChanges[jid] = { status_hadir: 'Absen', alasan: '' };
+    openAlasanModal(jid);
   } else {
-    attState[nama] = { status: 'Hadir', alasan: '' };
-    pendingChanges[nama] = { status_hadir: 'Hadir', alasan: '' };
+    attState[jid] = { status: 'Hadir', alasan: '' };
+    pendingChanges[jid] = { status_hadir: 'Hadir', alasan: '' };
   }
   updateSubmitBar();
   renderMembers();
 }
 
 // ── ALASAN MODAL ──────────────────────────────────────────────
-function openAlasanModal(nama) {
-  alasanTarget   = nama;
+function openAlasanModal(jid) {
+  const m = RAW.jemaat.find(x => x.id === jid);
+  alasanTarget   = jid;
   alasanSelected = '';
-  document.getElementById('alasanMemberName').textContent = nama;
+  document.getElementById('alasanMemberName').textContent = m ? m.nama : jid;
   document.querySelectorAll('.alasan-opt').forEach(o => o.classList.remove('selected'));
   document.getElementById('modalAlasan').classList.add('open');
 }
@@ -1622,8 +1953,8 @@ function confirmAlasan() {
 // [FIX] Cancel alasan — revert to previous state
 function cancelAlasan() {
   if (alasanPrevState) {
-    attState[alasanPrevState.nama] = { status: alasanPrevState.status, alasan: alasanPrevState.alasan };
-    delete pendingChanges[alasanPrevState.nama];
+    attState[alasanPrevState.jid] = { status: alasanPrevState.status, alasan: alasanPrevState.alasan };
+    delete pendingChanges[alasanPrevState.jid];
     alasanPrevState = null;
     updateSubmitBar();
   }
@@ -1656,12 +1987,12 @@ function isAnak(m) {
 }
 
 // ── MEMBER DETAIL MODAL ───────────────────────────────────────
-function openMemberDetail(nama) {
+function openMemberDetail(jid) {
   const svcName = SERVICES[currentService];
-  const m = RAW.jemaat.find(x => x.nama === nama);
+  const m = RAW.jemaat.find(x => x.id === jid);
   if (!m) return;
 
-  const svcMap = (RAW.absensi_map[m.nama] || {})[svcName] || {};
+  const svcMap = (RAW.absensi_map[m.id] || {})[svcName] || {};
   const dates  = RAW.tanggals[svcName] || [];
   const hadirN = dates.filter(d => svcMap[d]?.status_hadir === 'Hadir').length;
   const rate   = dates.length ? Math.round(hadirN / dates.length * 100) : 0;
@@ -1730,7 +2061,7 @@ function openMemberDetail(nama) {
     <div style="font-size:12px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Riwayat</div>
     ${historyRows || '<div style="color:var(--ink-4);font-size:13px;padding:12px 0;">Belum ada data</div>'}
     ${waBtn}
-    <button onclick="openEditProfile('${safe}')" style="width:100%;height:48px;background:var(--ink);color:white;border-radius:12px;border:none;font-size:15px;font-weight:800;font-family:var(--font);cursor:pointer;margin-top:8px;transition:all .2s;">✏️ Edit Profil</button>
+    <button onclick="openEditProfile(${m.id})" style="width:100%;height:48px;background:var(--ink);color:white;border-radius:12px;border:none;font-size:15px;font-weight:800;font-family:var(--font);cursor:pointer;margin-top:8px;transition:all .2s;">✏️ Edit Profil</button>
     <div style="height:4px;"></div>`;
 
   document.getElementById('modalMember').classList.add('open');
@@ -1741,14 +2072,14 @@ function closeModalMember(e) {
 }
 
 // ── EDIT PROFILE ──────────────────────────────────────────────
-function openEditProfile(nama) {
-  const m = RAW.jemaat.find(x => x.nama === nama);
+function openEditProfile(jid) {
+  const m = RAW.jemaat.find(x => x.id === jid);
   if (!m) return;
 
   closeModalMember();
   document.getElementById('modalMember').classList.remove('open');
 
-  document.getElementById('editNamaKey').value = m.nama;
+  document.getElementById('editNamaKey').value = m.id;
   document.getElementById('editNamaDisplay').textContent = m.nama;
   document.getElementById('editStatus').value = m.status || 'Aktif';
   document.getElementById('editKomisi').value = m.komisi || '';
@@ -1764,8 +2095,8 @@ function openEditProfile(nama) {
 }
 
 async function saveEditProfile() {
-  const nama = document.getElementById('editNamaKey').value;
-  if (!nama) return;
+  const jid = parseInt(document.getElementById('editNamaKey').value);
+  if (!jid) return;
 
   const updates = {
     status: document.getElementById('editStatus').value,
@@ -1782,16 +2113,15 @@ async function saveEditProfile() {
   btn.textContent = 'Menyimpan...';
 
   try {
-    await SB.update('jemaat', `nama=eq.${encodeURIComponent(nama)}`, updates);
+    await SB.update('jemaat', `id=eq.${jid}`, updates);
 
     // Update RAW locally
-    const m = RAW.jemaat.find(x => x.nama === nama);
+    const m = RAW.jemaat.find(x => x.id === jid);
     if (m) Object.assign(m, updates);
 
     showToast('✅ Profil berhasil diperbarui', 'success');
     closeModal('modalEdit');
 
-    // Re-render
     if (document.getElementById('pageAtt').classList.contains('active')) {
       initAttPage();
     }
@@ -1801,6 +2131,67 @@ async function saveEditProfile() {
 
   btn.disabled = false;
   btn.textContent = '💾 Simpan Perubahan';
+}
+
+// J-12: Hapus Jemaat
+async function deleteJemaat() {
+  const jid = parseInt(document.getElementById('editNamaKey').value);
+  if (!jid) return;
+  const m = RAW.jemaat.find(x => x.id === jid);
+  if (!m) return;
+
+  const confirmName = prompt(`Ketik nama "${m.nama}" untuk konfirmasi hapus:`);
+  if (!confirmName || confirmName.trim().toUpperCase() !== m.nama.trim().toUpperCase()) {
+    showToast('Nama tidak cocok. Hapus dibatalkan.', 'error');
+    return;
+  }
+
+  try {
+    // FK CASCADE ON DELETE hapus absensi otomatis
+    await SB.delete('jemaat', `id=eq.${jid}`);
+
+    // Remove from RAW locally
+    RAW.jemaat = RAW.jemaat.filter(x => x.id !== jid);
+    delete RAW.absensi_map[jid];
+
+    showToast(`✅ ${m.nama} telah dihapus`, 'success');
+    closeModal('modalEdit');
+    initAttPage();
+  } catch (err) {
+    showToast('❌ Gagal hapus: ' + err.message, 'error');
+  }
+}
+
+// J-12: Hapus Tanggal Ibadah
+async function deleteTanggal(date) {
+  const svcName = SERVICES[currentService];
+  const dt = new Date(date + 'T00:00:00');
+  const label = dt.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+
+  if (!confirm(`Hapus tanggal ${label} (${svcName})?\n\nSemua data absensi untuk tanggal ini akan dihapus permanen.`)) return;
+  if (!confirm(`YAKIN? Ketik OK untuk konfirmasi.`)) return;
+
+  try {
+    showLoading('Menghapus...');
+    await SB.delete('absensi', `tanggal=eq.${date}&ibadah=eq.${encodeURIComponent(svcName)}`);
+
+    // Remove from RAW locally
+    const idx = (RAW.tanggals[svcName] || []).indexOf(date);
+    if (idx > -1) RAW.tanggals[svcName].splice(idx, 1);
+    // Remove from absensi_map
+    Object.keys(RAW.absensi_map).forEach(jid => {
+      if (RAW.absensi_map[jid][svcName]) {
+        delete RAW.absensi_map[jid][svcName][date];
+      }
+    });
+
+    hideLoading();
+    showToast(`✅ Tanggal ${label} dihapus`, 'success');
+    initAttPage();
+  } catch (err) {
+    hideLoading();
+    showToast('❌ Gagal hapus: ' + err.message, 'error');
+  }
 }
 
 // ── SUBMIT BATCH ──────────────────────────────────────────────
@@ -1813,8 +2204,8 @@ function updateSubmitBar() {
 }
 
 async function submitBatch() {
-  const changes = Object.entries(pendingChanges).map(([nama, c]) => ({
-    nama, status_hadir: c.status_hadir, alasan: c.alasan || ''
+  const changes = Object.entries(pendingChanges).map(([jid, c]) => ({
+    jid: parseInt(jid), status_hadir: c.status_hadir, alasan: c.alasan || ''
   }));
   if (!changes.length) return;
 
@@ -1825,16 +2216,15 @@ async function submitBatch() {
   btn.textContent = 'Menyimpan...';
 
   try {
-    // Build upsert data
     const upsertData = changes.map(c => ({
       tanggal: selectedDate,
-      nama: c.nama,
+      jemaat_id: c.jid,
       ibadah: SERVICES[currentService],
       status_hadir: c.status_hadir,
       alasan: c.alasan
     }));
 
-    await SB.upsert('absensi', upsertData);
+    await SB.upsert('absensi', upsertData, 'tanggal,jemaat_id,ibadah');
 
     showToast(`✅ ${changes.length} data tersimpan`, 'success');
     pendingChanges = {};
@@ -1843,9 +2233,9 @@ async function submitBatch() {
     // Update RAW locally
     changes.forEach(c => {
       const svc = SERVICES[currentService];
-      if (!RAW.absensi_map[c.nama]) RAW.absensi_map[c.nama] = {};
-      if (!RAW.absensi_map[c.nama][svc]) RAW.absensi_map[c.nama][svc] = {};
-      RAW.absensi_map[c.nama][svc][selectedDate] = { status_hadir: c.status_hadir, alasan: c.alasan };
+      if (!RAW.absensi_map[c.jid]) RAW.absensi_map[c.jid] = {};
+      if (!RAW.absensi_map[c.jid][svc]) RAW.absensi_map[c.jid][svc] = {};
+      RAW.absensi_map[c.jid][svc][selectedDate] = { status_hadir: c.status_hadir, alasan: c.alasan };
     });
     renderMembers();
   } catch(err) {
@@ -1902,13 +2292,13 @@ async function submitAddTanggal() {
     });
 
     const records = members.map(m => ({
-      tanggal, nama: m.nama, ibadah, status_hadir: 'Absen', alasan: ''
+      tanggal, jemaat_id: m.id, ibadah, status_hadir: 'Absen', alasan: ''
     }));
 
     if (records.length) {
       // Batch insert in chunks of 100
       for (let i = 0; i < records.length; i += 100) {
-        await SB.upsert('absensi', records.slice(i, i + 100));
+        await SB.upsert('absensi', records.slice(i, i + 100), 'tanggal,jemaat_id,ibadah');
       }
     }
 
@@ -1962,6 +2352,12 @@ function formatTglLahir(val) {
 
 // ── PAGE SWITCHING ────────────────────────────────────────────
 function switchPage(page) {
+  // J-06: Warn if pending changes
+  if (Object.keys(pendingChanges).length > 0) {
+    if (!confirm('Ada perubahan belum disimpan. Tinggalkan halaman?')) return;
+    pendingChanges = {};
+    updateSubmitBar();
+  }
   document.getElementById('tabAtt').classList.toggle('active', page==='att');
   document.getElementById('tabDash').classList.toggle('active', page==='dash');
   document.getElementById('tabReport').classList.toggle('active', page==='report');
@@ -1980,25 +2376,26 @@ function renderDashboard() {
   const content  = document.getElementById('dashContent');
 
   const allMembers = RAW.jemaat;
-  const ib1Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 1'||ib==='keduanya'||ib===''; });
-  const ib2Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 2'||ib==='keduanya'||ib===''; });
+  const HIDDEN_STATUS = ['non-aktif', 'meninggal', 'kuliah'];
+  const activeMembers = allMembers.filter(m => { const st=(m.status||'').toLowerCase(); return !st || !HIDDEN_STATUS.includes(st); });
+  const ib1Members = activeMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 1'||ib==='keduanya'||ib===''; });
+  const ib2Members = activeMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 2'||ib==='keduanya'||ib===''; });
 
   function getRate(members, svc) {
     const dates = RAW.tanggals[svc] || [];
     if (!dates.length) return 0;
     const lastDate = dates[dates.length-1];
     const hadirN   = members.filter(m => {
-      return (RAW.absensi_map[m.nama]||{})[svc]?.[lastDate]?.status_hadir === 'Hadir';
+      return (RAW.absensi_map[m.id]||{})[svc]?.[lastDate]?.status_hadir === 'Hadir';
     }).length;
     return Math.round(hadirN / members.length * 100);
   }
 
-  // Alert: absen 3x berturut-turut — [FIX] show ALL, not just 10
   const alertList = [];
-  allMembers.forEach(m => {
+  activeMembers.forEach(m => {
     ['Ibadah 1','Ibadah 2'].forEach(svc => {
       const dates  = RAW.tanggals[svc] || [];
-      const svcMap = (RAW.absensi_map[m.nama]||{})[svc]||{};
+      const svcMap = (RAW.absensi_map[m.id]||{})[svc]||{};
       let streak = 0;
       for (let i = dates.length-1; i>=0; i--) {
         const st = svcMap[dates[i]]?.status_hadir || 'Absen';
@@ -2013,12 +2410,11 @@ function renderDashboard() {
 
   const bdayList = allMembers.filter(m => getBulanLahir(m) === bulanIni);
 
-  // Chart data: Ibadah 1 AND Ibadah 2
   function buildChartData(members, svc) {
     const dates = RAW.tanggals[svc] || [];
     return dates.map(date => {
       const hadirN = members.filter(m => {
-        return (RAW.absensi_map[m.nama]||{})[svc]?.[date]?.status_hadir === 'Hadir';
+        return (RAW.absensi_map[m.id]||{})[svc]?.[date]?.status_hadir === 'Hadir';
       }).length;
       const dt = new Date(date + 'T00:00:00');
       return { label: dt.getDate() + ' ' + BULAN_NAMES[dt.getMonth()+1], val: hadirN, max: members.length };
@@ -2041,7 +2437,7 @@ function renderDashboard() {
   }
 
   const komisiMap = {};
-  allMembers.forEach(m => { komisiMap[m.komisi] = (komisiMap[m.komisi]||0) + 1; });
+  activeMembers.forEach(m => { komisiMap[m.komisi] = (komisiMap[m.komisi]||0) + 1; });
   const komisiArr = Object.entries(komisiMap).sort((a,b)=>b[1]-a[1]);
   const maxKom    = komisiArr[0]?.[1] || 1;
 
@@ -2051,61 +2447,31 @@ function renderDashboard() {
   content.innerHTML = `
     <div class="dash-section-title">Kehadiran Minggu Ini</div>
     <div class="stats-grid">
-      <div class="stat-card">
+      <div class="stat-card" onclick="dashFilter('ib1')" style="cursor:pointer;transition:all .2s;" id="dashCardIb1">
         <div class="stat-card-num" style="color:var(--teal)">${ib1Members.length}</div>
         <div class="stat-card-label">Total Ibadah 1</div>
         <div class="stat-card-sub" style="color:var(--green)">${rate1}% hadir</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" onclick="dashFilter('ib2')" style="cursor:pointer;transition:all .2s;" id="dashCardIb2">
         <div class="stat-card-num" style="color:var(--blue)">${ib2Members.length}</div>
         <div class="stat-card-label">Total Ibadah 2</div>
         <div class="stat-card-sub" style="color:var(--green)">${rate2}% hadir</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" onclick="dashFilter('alert')" style="cursor:pointer;transition:all .2s;" id="dashCardAlert">
         <div class="stat-card-num" style="color:var(--red)">${alertList.length}</div>
         <div class="stat-card-label">Perlu Perhatian</div>
         <div class="stat-card-sub">Absen 3x+</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" onclick="dashFilter('bday')" style="cursor:pointer;transition:all .2s;" id="dashCardBday">
         <div class="stat-card-num" style="color:var(--purple)">${bdayList.length}</div>
         <div class="stat-card-label">🎂 Ulang Tahun</div>
         <div class="stat-card-sub">Bulan ini</div>
       </div>
     </div>
 
-    ${alertList.length ? `
-    <div class="dash-section-title">⚠️ Perlu Dikunjungi (${alertList.length} orang)</div>
-    <div class="alert-list">
-      ${alertList.map(m => {
-        const init = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-        const wa = m.hp_wa
-          ? `<a class="alert-wa" href="https://wa.me/${m.hp_wa.replace(/\D/g,'')}" target="_blank">💬</a>`
-          : '';
-        return `<div class="alert-card">
-          <div class="alert-avatar">${esc(init)}</div>
-          <div class="alert-info">
-            <div class="alert-name">${esc(m.nama)}</div>
-            <div class="alert-detail">Absen ${m.streak}x berturut · ${esc(m.svc)}</div>
-          </div>
-          ${wa}
-        </div>`;
-      }).join('')}
-    </div>` : ''}
+    <div id="dashFilterContent"></div>
 
-    ${bdayList.length ? `
-    <div class="dash-section-title">🎂 Ulang Tahun ${BULAN_FULL[bulanIni]}</div>
-    <div class="bday-list">
-      ${bdayList.map(m => {
-        return `<div class="bday-card">
-          <div class="bday-avatar">🎂</div>
-          <div>
-            <div class="bday-name">${esc(m.nama)}</div>
-            <div class="bday-komisi">${esc(m.komisi)} · ${esc(m.ibadah)}</div>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>` : ''}
-
+    <div id="dashDefaultContent">
     ${chart1.length ? `
     <div class="dash-section-title">Tren Kehadiran Ibadah 1</div>
     <div class="chart-wrap">
@@ -2131,43 +2497,198 @@ function renderDashboard() {
           </div>`).join('')}
       </div>
     </div>
+    </div>
     <div style="height:20px;"></div>`;
+
+  // Store data for filter
+  window._dashData = { ib1Members, ib2Members, alertList, bdayList, bulanIni };
+  window._dashActiveFilter = '';
+}
+
+function dashFilter(type) {
+  const d = window._dashData;
+  if (!d) return;
+  const fc = document.getElementById('dashFilterContent');
+  const dc = document.getElementById('dashDefaultContent');
+
+  // Toggle: click same card again to deselect
+  const cards = ['ib1','ib2','alert','bday'];
+  if (window._dashActiveFilter === type) {
+    window._dashActiveFilter = '';
+    fc.innerHTML = '';
+    dc.style.display = '';
+    cards.forEach(c => {
+      const el = document.getElementById('dashCard' + c.charAt(0).toUpperCase() + c.slice(1));
+      if (el) { el.style.boxShadow = ''; el.style.borderColor = 'var(--border)'; el.style.transform = ''; }
+    });
+    // Fix card IDs
+    document.getElementById('dashCardIb1').style.boxShadow = '';
+    document.getElementById('dashCardIb2').style.boxShadow = '';
+    document.getElementById('dashCardAlert').style.boxShadow = '';
+    document.getElementById('dashCardBday').style.boxShadow = '';
+    return;
+  }
+
+  window._dashActiveFilter = type;
+  dc.style.display = 'none';
+
+  // Highlight active card
+  ['dashCardIb1','dashCardIb2','dashCardAlert','dashCardBday'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isActive = id === 'dashCard' + {ib1:'Ib1',ib2:'Ib2',alert:'Alert',bday:'Bday'}[type];
+    el.style.boxShadow = isActive ? '0 0 0 2.5px var(--teal)' : '';
+    el.style.transform = isActive ? 'scale(1.03)' : '';
+  });
+
+  if (type === 'ib1') {
+    const dates = RAW.tanggals['Ibadah 1'] || [];
+    const lastDate = dates[dates.length-1];
+    const hadir = d.ib1Members.filter(m => (RAW.absensi_map[m.id]||{})['Ibadah 1']?.[lastDate]?.status_hadir === 'Hadir');
+    const absen = d.ib1Members.filter(m => (RAW.absensi_map[m.id]||{})['Ibadah 1']?.[lastDate]?.status_hadir !== 'Hadir');
+    fc.innerHTML = `
+      <div class="dash-section-title">✅ Hadir Ibadah 1 (${hadir.length})</div>
+      <div class="alert-list">${memberListHtml(hadir, 'var(--green-l)', 'var(--green)')}</div>
+      <div class="dash-section-title">✗ Absen Ibadah 1 (${absen.length})</div>
+      <div class="alert-list">${memberListHtml(absen, 'var(--red-l)', 'var(--red)')}</div>`;
+  } else if (type === 'ib2') {
+    const dates = RAW.tanggals['Ibadah 2'] || [];
+    const lastDate = dates[dates.length-1];
+    const hadir = d.ib2Members.filter(m => (RAW.absensi_map[m.id]||{})['Ibadah 2']?.[lastDate]?.status_hadir === 'Hadir');
+    const absen = d.ib2Members.filter(m => (RAW.absensi_map[m.id]||{})['Ibadah 2']?.[lastDate]?.status_hadir !== 'Hadir');
+    fc.innerHTML = `
+      <div class="dash-section-title">✅ Hadir Ibadah 2 (${hadir.length})</div>
+      <div class="alert-list">${memberListHtml(hadir, 'var(--green-l)', 'var(--green)')}</div>
+      <div class="dash-section-title">✗ Absen Ibadah 2 (${absen.length})</div>
+      <div class="alert-list">${memberListHtml(absen, 'var(--red-l)', 'var(--red)')}</div>`;
+  } else if (type === 'alert') {
+    fc.innerHTML = `
+      <div class="dash-section-title">⚠️ Perlu Dikunjungi (${d.alertList.length})</div>
+      <div class="alert-list">
+        ${d.alertList.map(m => {
+          const init = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+          const wa = m.hp_wa
+            ? `<a class="alert-wa" href="https://wa.me/${m.hp_wa.replace(/\D/g,'')}" target="_blank">💬</a>`
+            : '';
+          return `<div class="alert-card">
+            <div class="alert-avatar">${esc(init)}</div>
+            <div class="alert-info">
+              <div class="alert-name">${esc(m.nama)}</div>
+              <div class="alert-detail">Absen ${m.streak}x berturut · ${esc(m.svc)}</div>
+            </div>
+            ${wa}
+          </div>`;
+        }).join('')}
+      </div>`;
+  } else if (type === 'bday') {
+    fc.innerHTML = `
+      <div class="dash-section-title">🎂 Ulang Tahun ${BULAN_FULL[d.bulanIni]} (${d.bdayList.length})</div>
+      <div class="bday-list">
+        ${d.bdayList.map(m => {
+          return `<div class="bday-card">
+            <div class="bday-avatar">🎂</div>
+            <div>
+              <div class="bday-name">${esc(m.nama)}</div>
+              <div class="bday-komisi">${esc(m.komisi)} · ${esc(m.tgl_lahir || '')}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+}
+
+function memberListHtml(members, bgColor, textColor) {
+  if (!members.length) return '<div style="color:var(--ink-4);font-size:13px;padding:12px;">Tidak ada</div>';
+  return members.map(m => {
+    const init = m.nama.trim().split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+    return `<div class="alert-card" style="border-left-color:${textColor};">
+      <div class="alert-avatar" style="background:${bgColor};color:${textColor};">${esc(init)}</div>
+      <div class="alert-info">
+        <div class="alert-name">${esc(m.nama)}</div>
+        <div class="alert-detail" style="color:var(--ink-3);">${esc(m.komisi)}${m.keluarga_nama ? ' · 🏠 ' + esc(m.keluarga_nama) : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── REPORT ────────────────────────────────────────────────────
 function renderReport() {
   if (!RAW) return;
   const content = document.getElementById('reportContent');
-
-  // Get all available dates (union of both services)
-  const allDates = [...new Set([
-    ...(RAW.tanggals['Ibadah 1'] || []),
-    ...(RAW.tanggals['Ibadah 2'] || [])
-  ])].sort();
-
-  if (!allDates.length) {
-    content.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Belum ada data</div></div>';
-    return;
-  }
-
-  const latestDate = allDates[allDates.length - 1];
-
-  // Date selector
-  const dateOptions = allDates.slice().reverse().map(d => {
-    const dt = new Date(d + 'T00:00:00');
-    const label = dt.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-    return `<option value="${d}" ${d===latestDate?'selected':''}>${label}</option>`;
-  }).join('');
-
-  content.innerHTML = `
-    <div class="report-date-selector">
-      <label>Pilih Tanggal Ibadah</label>
-      <select onchange="renderReportForDate(this.value)" id="reportDateSelect">${dateOptions}</select>
+  const allDates = [...new Set([...(RAW.tanggals['Ibadah 1']||[]),...(RAW.tanggals['Ibadah 2']||[])])].sort();
+  if (!allDates.length) { content.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Belum ada data</div></div>'; return; }
+  const latestDate = allDates[allDates.length-1];
+  const monthSet = new Set(); allDates.forEach(d => monthSet.add(d.substring(0,7)));
+  const months = [...monthSet].sort().reverse();
+  const monthOpts = months.map(m => { const [y,mo]=m.split('-'); return `<option value="${m}">${BULAN_FULL[parseInt(mo)]} ${y}</option>`; }).join('');
+  const dateOpts = allDates.slice().reverse().map(d => { const dt=new Date(d+'T00:00:00'); return `<option value="${d}" ${d===latestDate?'selected':''}>${dt.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</option>`; }).join('');
+  content.innerHTML = `<div class="report-date-selector"><label>Mode Laporan</label>
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <div class="filter-chip active" id="rptModeDate" onclick="setReportMode('date')" style="flex:1;justify-content:center;">Per Tanggal</div>
+      <div class="filter-chip" id="rptModeMonth" onclick="setReportMode('month')" style="flex:1;justify-content:center;">Per Bulan</div>
+      <div class="filter-chip" id="rptModeYear" onclick="setReportMode('year')" style="flex:1;justify-content:center;">Per Tahun</div>
     </div>
-    <div id="reportBody"></div>
-  `;
-
+    <div id="rptSelectorDate"><select onchange="renderReportForDate(this.value)" id="reportDateSelect">${dateOpts}</select>
+      <button onclick="exportCSV(document.getElementById('reportDateSelect').value)" style="width:100%;height:40px;margin-top:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:800;font-family:var(--font);cursor:pointer;">📥 Export CSV</button></div>
+    <div id="rptSelectorMonth" style="display:none;"><select onchange="renderReportBulanan(this.value)" id="reportMonthSelect">${monthOpts}</select></div>
+    <div id="rptSelectorYear" style="display:none;"><div style="font-size:14px;font-weight:700;color:var(--ink-2);padding:8px 0;">Rekap Tahun ${TAHUN_AKTIF}</div></div>
+  </div><div id="reportBody"></div>`;
   renderReportForDate(latestDate);
+}
+let currentReportMode='date';
+function setReportMode(mode){currentReportMode=mode;['date','month','year'].forEach(m=>{document.getElementById('rptMode'+m.charAt(0).toUpperCase()+m.slice(1)).classList.toggle('active',m===mode);document.getElementById('rptSelector'+m.charAt(0).toUpperCase()+m.slice(1)).style.display=m===mode?'':'none';});if(mode==='date'){const s=document.getElementById('reportDateSelect');if(s.value)renderReportForDate(s.value);}else if(mode==='month'){const s=document.getElementById('reportMonthSelect');if(s.value)renderReportBulanan(s.value);}else renderReportTahunan();}
+
+function renderReportBulanan(yearMonth){
+  const body=document.getElementById('reportBody');const[year,month]=yearMonth.split('-');
+  const HS=['non-aktif','meninggal','kuliah'];
+  const am=RAW.jemaat.filter(m=>{const st=(m.status||'').toLowerCase();return !st||!HS.includes(st);});
+  const res={};
+  SERVICES.forEach(svc=>{
+    const dates=(RAW.tanggals[svc]||[]).filter(d=>d.startsWith(yearMonth));
+    const mems=am.filter(m=>{const ib=(m.ibadah||'').toLowerCase();return ib===svc.toLowerCase()||ib==='keduanya'||ib==='';});
+    let tH=0,tA=0;const ms={};mems.forEach(m=>{ms[m.nama]={h:0};});
+    dates.forEach(date=>{mems.forEach(m=>{if((RAW.absensi_map[m.id]||{})[svc]?.[date]?.status_hadir==='Hadir'){tH++;ms[m.nama].h++;}else tA++;});});
+    const rate=(tH+tA)>0?Math.round(tH/(tH+tA)*100):0;
+    res[svc]={dates,rate,tH,never:mems.filter(m=>ms[m.nama].h===0),perfect:mems.filter(m=>ms[m.nama].h===dates.length&&dates.length>0)};
+  });
+  const bl=BULAN_FULL[parseInt(month)]+' '+year;
+  function mr(list){return list.map((m,i)=>`<div class="report-member-row"><div class="report-member-num">${i+1}</div><div class="report-member-name">${esc(m.nama)}</div><div class="report-member-komisi">${esc(m.komisi)}</div></div>`).join('');}
+  body.innerHTML=`<div class="dash-section-title">Rekap ${esc(bl)}</div>
+    <div class="report-summary-grid">
+      ${SERVICES.map(svc=>{const r=res[svc];return`<div class="report-summary-card"><div class="report-summary-num" style="color:var(--teal)">${r.rate}%</div><div class="report-summary-label">${esc(svc)}</div><div class="report-summary-sub">${r.tH} hadir / ${r.dates.length} minggu</div></div>`;}).join('')}
+      ${SERVICES.map(svc=>{const r=res[svc];return`<div class="report-summary-card"><div class="report-summary-num" style="color:var(--green)">${r.perfect.length}</div><div class="report-summary-label">Rajin ${esc(svc)}</div><div class="report-summary-sub">Hadir semua</div></div>`;}).join('')}
+    </div>
+    ${SERVICES.map(svc=>{const r=res[svc];if(!r.never.length)return'';return`<div class="report-card"><div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')"><div class="report-card-title">🚫 Tidak Hadir ${esc(svc)}<span class="report-card-badge" style="background:var(--red-l);color:var(--red);">${r.never.length}</span></div><div class="report-card-chevron">▼</div></div><div class="report-card-body">${mr(r.never)}</div></div>`;}).join('')}
+    ${SERVICES.map(svc=>{const r=res[svc];if(!r.perfect.length)return'';return`<div class="report-card"><div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')"><div class="report-card-title">⭐ Rajin ${esc(svc)}<span class="report-card-badge" style="background:var(--green-l);color:var(--green);">${r.perfect.length}</span></div><div class="report-card-chevron">▼</div></div><div class="report-card-body">${mr(r.perfect)}</div></div>`;}).join('')}`;
+}
+
+function renderReportTahunan(){
+  const body=document.getElementById('reportBody');
+  const HS=['non-aktif','meninggal','kuliah'];
+  const am=RAW.jemaat.filter(m=>{const st=(m.status||'').toLowerCase();return !st||!HS.includes(st);});
+  const md=[];
+  for(let mo=1;mo<=12;mo++){const ym=`${TAHUN_AKTIF}-${String(mo).padStart(2,'0')}`;const sd={};
+    SERVICES.forEach(svc=>{const dates=(RAW.tanggals[svc]||[]).filter(d=>d.startsWith(ym));if(!dates.length){sd[svc]=null;return;}
+      const mems=am.filter(m=>{const ib=(m.ibadah||'').toLowerCase();return ib===svc.toLowerCase()||ib==='keduanya'||ib==='';});
+      let h=0,t=0;dates.forEach(date=>{mems.forEach(m=>{t++;if((RAW.absensi_map[m.id]||{})[svc]?.[date]?.status_hadir==='Hadir')h++;});});
+      sd[svc]={dates:dates.length,h,t,rate:t?Math.round(h/t*100):0};});
+    md.push({month:mo,label:BULAN_NAMES[mo],...sd});}
+  const hd=md.filter(d=>d['Ibadah 1']||d['Ibadah 2']);
+  if(!hd.length){body.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Belum ada data</div></div>';return;}
+  let tH=0,tS=0;hd.forEach(d=>{SERVICES.forEach(svc=>{if(d[svc]){tH+=d[svc].h;tS+=d[svc].t;}});});
+  const or=tS?Math.round(tH/tS*100):0;
+  body.innerHTML=`<div class="dash-section-title">Ringkasan Tahun ${TAHUN_AKTIF}</div>
+    <div class="report-summary-grid">
+      <div class="report-summary-card"><div class="report-summary-num" style="color:var(--teal)">${or}%</div><div class="report-summary-label">Rata-rata Kehadiran</div></div>
+      <div class="report-summary-card"><div class="report-summary-num" style="color:var(--green)">${tH}</div><div class="report-summary-label">Total Kehadiran</div></div>
+      <div class="report-summary-card"><div class="report-summary-num" style="color:var(--blue)">${hd.reduce((s,d)=>s+(d['Ibadah 1']?.dates||0)+(d['Ibadah 2']?.dates||0),0)}</div><div class="report-summary-label">Total Ibadah</div></div>
+      <div class="report-summary-card"><div class="report-summary-num" style="color:var(--purple)">${am.length}</div><div class="report-summary-label">Jemaat Aktif</div></div>
+    </div>
+    <div class="dash-section-title">Kehadiran Per Bulan</div>
+    <div class="chart-wrap"><table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <tr style="border-bottom:2px solid var(--border);"><th style="text-align:left;padding:8px 4px;font-weight:800;color:var(--ink-3);">Bulan</th>${SERVICES.map(svc=>`<th style="text-align:center;padding:8px 4px;font-weight:800;color:var(--ink-3);">${esc(svc)}</th>`).join('')}</tr>
+      ${hd.map(d=>`<tr style="border-bottom:1px solid var(--bg);"><td style="padding:8px 4px;font-weight:700;">${d.label}</td>${SERVICES.map(svc=>{const v=d[svc];if(!v)return'<td style="text-align:center;padding:8px 4px;color:var(--ink-4);">—</td>';const c=v.rate>=80?'var(--green)':v.rate>=50?'var(--amber)':'var(--red)';return`<td style="text-align:center;padding:8px 4px;"><span style="font-weight:800;color:${c};font-family:var(--mono);">${v.rate}%</span><span style="color:var(--ink-4);font-size:10px;"> (${v.dates}mg)</span></td>`;}).join('')}</tr>`).join('')}
+    </table></div>`;
 }
 
 function renderReportForDate(date) {
@@ -2183,15 +2704,15 @@ function renderReportForDate(date) {
   const ib2Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 2'||ib==='keduanya'||ib===''; });
 
   // Get attendance for this date
-  function getStatus(nama, svc) {
-    return (RAW.absensi_map[nama]||{})[svc]?.[date]?.status_hadir || 'Absen';
+  function getStatus(jid, svc) {
+    return (RAW.absensi_map[jid]||{})[svc]?.[date]?.status_hadir || 'Absen';
   }
 
   // 1. Hadir Ibadah 1
-  const hadirIb1 = hasIb1 ? ib1Members.filter(m => getStatus(m.nama, 'Ibadah 1') === 'Hadir') : [];
-  const absenIb1 = hasIb1 ? ib1Members.filter(m => getStatus(m.nama, 'Ibadah 1') !== 'Hadir') : [];
-  const hadirIb2 = hasIb2 ? ib2Members.filter(m => getStatus(m.nama, 'Ibadah 2') === 'Hadir') : [];
-  const absenIb2 = hasIb2 ? ib2Members.filter(m => getStatus(m.nama, 'Ibadah 2') !== 'Hadir') : [];
+  const hadirIb1 = hasIb1 ? ib1Members.filter(m => getStatus(m.id, 'Ibadah 1') === 'Hadir') : [];
+  const absenIb1 = hasIb1 ? ib1Members.filter(m => getStatus(m.id, 'Ibadah 1') !== 'Hadir') : [];
+  const hadirIb2 = hasIb2 ? ib2Members.filter(m => getStatus(m.id, 'Ibadah 2') === 'Hadir') : [];
+  const absenIb2 = hasIb2 ? ib2Members.filter(m => getStatus(m.id, 'Ibadah 2') !== 'Hadir') : [];
 
   // 2. Tidak hadir kedua ibadah
   const absenKeduanya = allMembers.filter(m => {
@@ -2347,6 +2868,180 @@ function renderReportForDate(date) {
   `;
 }
 
+// ── J-08: GANTI PIN ───────────────────────────────────────────
+async function changePin() {
+  const oldPin = document.getElementById('settOldPin').value;
+  const newPin = document.getElementById('settNewPin').value;
+  const confirmPin = document.getElementById('settConfirmPin').value;
+
+  if (!oldPin || !newPin || !confirmPin) { showToast('Isi semua field', 'error'); return; }
+  if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) { showToast('PIN harus 4 digit angka', 'error'); return; }
+  if (newPin !== confirmPin) { showToast('Konfirmasi PIN tidak cocok', 'error'); return; }
+
+  const btn = document.getElementById('changePinBtn');
+  btn.disabled = true; btn.textContent = 'Memverifikasi...';
+
+  try {
+    // Verify old PIN
+    const hashedOld = await sha256(oldPin);
+    const data = await SB.get('config', 'key=eq.pin&select=value');
+    if (!data.length || data[0].value !== hashedOld) {
+      showToast('❌ PIN lama salah', 'error');
+      btn.disabled = false; btn.textContent = '🔒 Ganti PIN';
+      return;
+    }
+
+    // Save new PIN hash
+    const hashedNew = await sha256(newPin);
+    await SB.update('config', 'key=eq.pin', { value: hashedNew });
+
+    showToast('✅ PIN berhasil diganti!', 'success');
+    document.getElementById('settOldPin').value = '';
+    document.getElementById('settNewPin').value = '';
+    document.getElementById('settConfirmPin').value = '';
+    PIN = newPin; // Update current session PIN
+  } catch (err) {
+    showToast('❌ Gagal: ' + err.message, 'error');
+  }
+  btn.disabled = false; btn.textContent = '🔒 Ganti PIN';
+}
+
+// ── J-03 & J-10: TAHUN AKTIF ─────────────────────────────────
+let TAHUN_AKTIF = new Date().getFullYear();
+
+function changeTahun() {
+  const newTahun = parseInt(document.getElementById('settTahun').value);
+  if (newTahun && newTahun !== TAHUN_AKTIF) {
+    TAHUN_AKTIF = newTahun;
+    localStorage.setItem('gpbsi_tahun', String(TAHUN_AKTIF));
+    closeModal('modalSettings');
+    showToast(`📅 Tahun aktif: ${TAHUN_AKTIF}`, 'success');
+    loadData(); // Reload with new year filter
+  }
+}
+
+// ── J-11: BACKUP OTOMATIS ─────────────────────────────────────
+const BACKUP_INTERVAL_DAYS = 7; // reminder tiap 7 hari
+
+function getLastBackupDate() {
+  return localStorage.getItem('gpbsi_last_backup') || null;
+}
+
+function setLastBackupDate() {
+  const now = new Date().toISOString();
+  localStorage.setItem('gpbsi_last_backup', now);
+  updateBackupLabel();
+  updateFabBackupSub();
+}
+
+function updateBackupLabel() {
+  const el = document.getElementById('lastBackupLabel');
+  if (!el) return;
+  const last = getLastBackupDate();
+  if (!last) { el.textContent = 'Belum pernah'; el.style.color = 'var(--red)'; return; }
+  const d = new Date(last);
+  const fmt = d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  const daysDiff = Math.floor((Date.now() - d.getTime()) / 86400000);
+  el.textContent = fmt;
+  el.style.color = daysDiff >= BACKUP_INTERVAL_DAYS ? 'var(--red)' : 'var(--green)';
+}
+
+function updateFabBackupSub() {
+  const el = document.getElementById('fabBackupSub');
+  if (!el) return;
+  const last = getLastBackupDate();
+  if (!last) { el.textContent = '⚠️ Belum pernah backup!'; return; }
+  const daysDiff = Math.floor((Date.now() - new Date(last).getTime()) / 86400000);
+  if (daysDiff >= BACKUP_INTERVAL_DAYS) {
+    el.textContent = `⚠️ Terakhir ${daysDiff} hari lalu`;
+  } else {
+    el.textContent = `Terakhir ${daysDiff === 0 ? 'hari ini' : daysDiff + ' hari lalu'}`;
+  }
+}
+
+function checkBackupReminder() {
+  const last = getLastBackupDate();
+  if (!last) {
+    setTimeout(() => showToast('💾 Belum pernah backup! Buka menu + untuk backup.', 'warn'), 2000);
+    return;
+  }
+  const daysDiff = Math.floor((Date.now() - new Date(last).getTime()) / 86400000);
+  if (daysDiff >= BACKUP_INTERVAL_DAYS) {
+    setTimeout(() => showToast(`💾 Sudah ${daysDiff} hari tidak backup. Segera backup data!`, 'warn'), 2000);
+  }
+}
+
+async function doBackup() {
+  if (!RAW) {
+    showToast('⚠️ Data belum dimuat. Buka app dulu.', '');
+    return;
+  }
+  showLoading('Menyiapkan backup...');
+  try {
+    // Ambil semua data absensi fresh dari Supabase (tidak hanya tahun aktif)
+    const [jemaat, absensi] = await Promise.all([
+      SB.get('jemaat', 'select=*&order=nama'),
+      SB.get('absensi', 'select=*&order=tanggal')
+    ]);
+
+    const backup = {
+      meta: {
+        app: 'GPBSI Absensi',
+        exported_at: new Date().toISOString(),
+        jemaat_count: jemaat.length,
+        absensi_count: absensi.length
+      },
+      jemaat,
+      absensi
+    };
+
+    const json = JSON.stringify(backup, null, 2);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0,10);
+    a.href = URL.createObjectURL(blob);
+    a.download = `GPBSI_Backup_${date}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    setLastBackupDate();
+    hideLoading();
+    showToast(`✅ Backup berhasil! ${jemaat.length} jemaat, ${absensi.length} absensi.`, 'success');
+  } catch(e) {
+    hideLoading();
+    showToast('❌ Backup gagal: ' + e.message, '');
+  }
+}
+
+// ── J-07: EXPORT CSV ──────────────────────────────────────────
+function exportCSV(date) {
+  if (!RAW) return;
+  const rows = [['Nama','Komisi','Keluarga','Ibadah','Status','Alasan']];
+  RAW.jemaat.forEach(m => {
+    ['Ibadah 1','Ibadah 2'].forEach(svc => {
+      const entry = (RAW.absensi_map[m.id]||{})[svc]?.[date];
+      if (entry) {
+        rows.push([
+          '"' + m.nama + '"',
+          m.komisi || '',
+          '"' + (m.keluarga_nama || '') + '"',
+          svc,
+          entry.status_hadir,
+          entry.alasan || ''
+        ]);
+      }
+    });
+  });
+  const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n'); // BOM for Excel
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Absensi_GPBSI_${date}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('✅ CSV didownload!', 'success');
+}
+
 // ── UTILS ─────────────────────────────────────────────────────
 function showLoading(text='Memuat...') {
   document.getElementById('loadingText').textContent = text;
@@ -2363,6 +3058,9 @@ function showToast(msg, type='') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.className='toast', 3000);
 }
+
+// ── INIT ─────────────────────────────────────────────────────
+initApp();
 </script>
 </body>
 </html>
