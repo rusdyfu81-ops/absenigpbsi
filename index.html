@@ -371,7 +371,8 @@ body {
   background: var(--card);
   border-bottom: 1px solid var(--border);
   padding: 10px 20px;
-  position: sticky; z-index: 89;
+  position: sticky;
+  z-index: 88;
 }
 .filter-scroll {
   display: flex; gap: 6px;
@@ -906,6 +907,60 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text { font-size: 14px; font-weight: 600; color: var(--ink-3); }
 
+/* Export format button */
+.export-fmt-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+  padding: 12px 8px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  background: var(--bg);
+  cursor: pointer; transition: all .15s;
+  font-size: 13px; font-weight: 700; color: var(--ink-3);
+}
+.export-fmt-btn.active {
+  border-color: var(--teal);
+  background: var(--teal-xl);
+  color: var(--teal);
+}
+
+/* Export category item */
+.export-cat-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all .15s;
+  user-select: none;
+}
+.export-cat-item.checked {
+  border-color: var(--teal);
+  background: var(--teal-xl);
+}
+.export-cat-item.disabled {
+  opacity: .4; cursor: not-allowed;
+}
+.export-cat-check {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid var(--border);
+  background: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+  transition: all .15s;
+}
+.export-cat-item.checked .export-cat-check {
+  background: var(--teal); border-color: var(--teal); color: white;
+}
+.export-cat-icon { font-size: 20px; flex-shrink: 0; }
+.export-cat-label { font-size: 14px; font-weight: 700; flex: 1; }
+.export-cat-count {
+  font-size: 12px; font-weight: 800; font-family: var(--mono);
+  color: var(--ink-3);
+  background: var(--bg); border-radius: 20px;
+  padding: 2px 10px;
+}
+
 /* Responsive */
 @media (min-width: 640px) {
   .member-list { padding: 16px 20px 100px; }
@@ -982,6 +1037,7 @@ body {
       <div class="nav-tab" id="tabReport" onclick="switchPage('report')">Report</div>
     </div>
     <div class="nav-badge" id="navBadge">—</div>
+    <div id="realtimeDot" title="Realtime" style="width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex-shrink:0;transition:background .3s;margin-left:6px;"></div>
   </nav>
 
   <!-- ABSENSI PAGE -->
@@ -1026,6 +1082,7 @@ body {
     <div class="member-list" id="memberList"></div>
     <div class="submit-bar" id="submitBar">
       <button class="submit-btn" id="submitBtn" onclick="submitBatch()">Simpan perubahan</button>
+      <div style="text-align:center;font-size:11px;color:var(--ink-4);margin-top:6px;">Tersimpan otomatis saat ganti halaman / tanggal</div>
     </div>
     <div class="fab" id="fabBtn" onclick="openFabMenu()">＋</div>
   </div>
@@ -1091,8 +1148,11 @@ body {
     <div class="modal-handle"></div>
     <div class="modal-body">
       <div style="font-size:17px;font-weight:800;margin-bottom:20px;">Edit Profil Jemaat</div>
-      <div id="editNamaDisplay" style="font-size:15px;font-weight:700;color:var(--teal);margin-bottom:16px;"></div>
       <input type="hidden" id="editNamaKey">
+      <div class="form-group">
+        <label class="form-label">Nama (Huruf Kapital)</label>
+        <input type="text" class="form-input" id="editNamaBaru" placeholder="NAMA JEMAAT" style="font-weight:700;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+      </div>
       <div class="form-group">
         <label class="form-label">Status</label>
         <select class="form-select" id="editStatus">
@@ -1314,6 +1374,66 @@ body {
   </div>
 </div>
 
+<!-- MODAL: Export Laporan -->
+<div class="modal-overlay" id="modalExport" onclick="closeModal('modalExport', event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div style="font-size:17px;font-weight:800;margin-bottom:4px;">📥 Export Laporan</div>
+      <div style="font-size:13px;color:var(--ink-3);margin-bottom:16px;" id="exportDateLabel">—</div>
+
+      <!-- Format -->
+      <div style="font-size:11px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Format</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <div id="fmtCSV" class="export-fmt-btn active" onclick="setExportFmt('csv')">
+          <span style="font-size:18px;">📄</span>
+          <span>CSV</span>
+        </div>
+        <div id="fmtWA" class="export-fmt-btn" onclick="setExportFmt('wa')">
+          <span style="font-size:18px;">💬</span>
+          <span>WhatsApp</span>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Pilih Kategori</div>
+
+      <!-- Tombol pilih semua / batal -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button onclick="exportSelectAll(true)" style="flex:1;height:32px;background:var(--teal-xl);color:var(--teal);border:1.5px solid var(--teal-l);border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;">Pilih Semua</button>
+        <button onclick="exportSelectAll(false)" style="flex:1;height:32px;background:var(--bg);color:var(--ink-3);border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;">Batal Semua</button>
+      </div>
+
+      <div id="exportCategoryList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
+
+      <button id="exportRunBtn" onclick="runExportLaporan()" style="width:100%;height:48px;background:var(--green);color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;font-family:var(--font);cursor:pointer;">📥 Download CSV</button>
+      <div style="height:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: WA Preview -->
+<div class="modal-overlay" id="modalWA" onclick="closeModal('modalWA', event)">
+  <div class="modal-sheet" style="max-height:92vh;">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:17px;font-weight:800;">💬 Teks WhatsApp</div>
+        <div style="font-size:11px;color:var(--ink-4);">Preview</div>
+      </div>
+
+      <!-- Preview bubble WA -->
+      <div style="background:#e9fbe5;border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.7;font-family:'Segoe UI',sans-serif;white-space:pre-wrap;word-break:break-word;max-height:42vh;overflow-y:auto;border:1px solid #c3f0b8;margin-bottom:16px;" id="waPreviewText"></div>
+
+      <!-- Tombol aksi -->
+      <button onclick="copyWAText()" id="waCopyBtn" style="width:100%;height:50px;background:#25D366;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        📋 Salin Teks
+      </button>
+      <div style="font-size:11px;color:var(--ink-4);text-align:center;margin-top:8px;">Tempel langsung ke chat WhatsApp</div>
+      <div style="height:8px;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
@@ -1350,11 +1470,10 @@ const SB = {
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   },
-  async upsert(table, data, onConflict) {
-    const qs = onConflict ? `?on_conflict=${onConflict}` : '';
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${qs}`, {
+  async upsert(table, data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method: 'POST',
-      headers: { ...this.headers(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      headers: { ...this.headers(), 'Prefer': 'resolution=merge-duplicates' },
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error(await res.text());
@@ -1388,6 +1507,192 @@ const SB = {
   }
 };
 
+// ── SUPABASE REALTIME ─────────────────────────────────────────
+// Subscribe ke perubahan tabel absensi & jemaat via WebSocket
+let realtimeWs = null;
+let realtimeReconnectTimer = null;
+let realtimeHeartbeatTimer = null;
+let realtimeRef = 1;
+
+function realtimeSetDot(state) {
+  // state: 'connecting' | 'connected' | 'disconnected'
+  const dot = document.getElementById('realtimeDot');
+  if (!dot) return;
+  const colors = { connecting: '#f59e0b', connected: '#10b981', disconnected: '#6b7280' };
+  const titles = { connecting: 'Realtime: menghubungkan...', connected: 'Realtime: terhubung ✓', disconnected: 'Realtime: terputus' };
+  dot.style.background = colors[state] || colors.disconnected;
+  dot.title = titles[state] || '';
+}
+
+function realtimeConnect() {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return;
+  if (realtimeWs && realtimeWs.readyState <= 1) return; // already open/connecting
+
+  realtimeSetDot('connecting');
+
+  // Supabase Realtime WebSocket endpoint
+  const wsUrl = SUPABASE_URL.replace('https://', 'wss://').replace('http://', 'ws://')
+    + '/realtime/v1/websocket?apikey=' + SUPABASE_KEY + '&vsn=1.0.0';
+
+  try {
+    realtimeWs = new WebSocket(wsUrl);
+  } catch(e) {
+    realtimeSetDot('disconnected');
+    realtimeScheduleReconnect();
+    return;
+  }
+
+  realtimeWs.onopen = () => {
+    realtimeSetDot('connected');
+    clearTimeout(realtimeReconnectTimer);
+
+    // Join channel: subscribe ke tabel absensi (INSERT/UPDATE/DELETE)
+    const joinAbsensi = {
+      topic: 'realtime:public:absensi',
+      event: 'phx_join',
+      payload: { config: { broadcast: { self: false }, presence: { key: '' } } },
+      ref: String(realtimeRef++)
+    };
+    // Join channel: subscribe ke tabel jemaat
+    const joinJemaat = {
+      topic: 'realtime:public:jemaat',
+      event: 'phx_join',
+      payload: { config: { broadcast: { self: false }, presence: { key: '' } } },
+      ref: String(realtimeRef++)
+    };
+    realtimeWs.send(JSON.stringify(joinAbsensi));
+    realtimeWs.send(JSON.stringify(joinJemaat));
+
+    // Heartbeat setiap 25 detik
+    realtimeHeartbeatTimer = setInterval(() => {
+      if (realtimeWs && realtimeWs.readyState === 1) {
+        realtimeWs.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: String(realtimeRef++) }));
+      }
+    }, 25000);
+  };
+
+  realtimeWs.onmessage = (evt) => {
+    let msg;
+    try { msg = JSON.parse(evt.data); } catch { return; }
+
+    const event = msg.event;
+    const payload = msg.payload || {};
+    const topic = msg.topic || '';
+
+    // Abaikan heartbeat reply & join reply
+    if (event === 'phx_reply' || event === 'phx_error') return;
+    if (event === 'presence_state' || event === 'presence_diff') return;
+
+    // Tangkap perubahan data dari Supabase
+    if (event === 'INSERT' || event === 'UPDATE' || event === 'DELETE') {
+      const record = payload.record || payload.old_record;
+      if (!record || !RAW) return;
+
+      if (topic.includes('absensi')) {
+        realtimeHandleAbsensi(event, payload.record, payload.old_record);
+      } else if (topic.includes('jemaat')) {
+        realtimeHandleJemaat(event, payload.record, payload.old_record);
+      }
+    }
+  };
+
+  realtimeWs.onerror = () => {
+    realtimeSetDot('disconnected');
+  };
+
+  realtimeWs.onclose = () => {
+    realtimeSetDot('disconnected');
+    clearInterval(realtimeHeartbeatTimer);
+    realtimeScheduleReconnect();
+  };
+}
+
+function realtimeScheduleReconnect() {
+  clearTimeout(realtimeReconnectTimer);
+  realtimeReconnectTimer = setTimeout(() => {
+    if (SUPABASE_URL && SUPABASE_KEY) realtimeConnect();
+  }, 5000);
+}
+
+function realtimeDisconnect() {
+  clearTimeout(realtimeReconnectTimer);
+  clearInterval(realtimeHeartbeatTimer);
+  if (realtimeWs) { realtimeWs.onclose = null; realtimeWs.close(); realtimeWs = null; }
+  realtimeSetDot('disconnected');
+}
+
+// Handle perubahan tabel absensi dari pengurus lain
+function realtimeHandleAbsensi(event, record, oldRecord) {
+  if (!RAW) return;
+
+  if (event === 'DELETE') {
+    const old = oldRecord;
+    if (!old) return;
+    if (RAW.absensi_map[old.jemaat_id]?.[old.ibadah]) {
+      delete RAW.absensi_map[old.jemaat_id][old.ibadah][old.tanggal];
+    }
+  } else {
+    // INSERT atau UPDATE
+    const r = record;
+    if (!r) return;
+
+    // Update RAW.absensi_map
+    if (!RAW.absensi_map[r.jemaat_id]) RAW.absensi_map[r.jemaat_id] = {};
+    if (!RAW.absensi_map[r.jemaat_id][r.ibadah]) RAW.absensi_map[r.jemaat_id][r.ibadah] = {};
+    RAW.absensi_map[r.jemaat_id][r.ibadah][r.tanggal] = {
+      status_hadir: r.status_hadir,
+      alasan: r.alasan || ''
+    };
+
+    // Tambah tanggal ke RAW.tanggals kalau belum ada
+    if (!RAW.tanggals[r.ibadah]) RAW.tanggals[r.ibadah] = [];
+    if (!RAW.tanggals[r.ibadah].includes(r.tanggal)) {
+      RAW.tanggals[r.ibadah].push(r.tanggal);
+      RAW.tanggals[r.ibadah].sort();
+    }
+  }
+
+  // Kalau perubahan ini untuk tanggal & ibadah yang sedang ditampilkan,
+  // update attState & render — tapi jangan overwrite pendingChanges user ini
+  const r = record || oldRecord;
+  if (r && r.tanggal === selectedDate && r.ibadah === SERVICES[currentService]) {
+    // Jangan update kalau jemaat ini ada di pendingChanges (sedang diedit user ini)
+    if (!pendingChanges[r.jemaat_id]) {
+      if (event === 'DELETE') {
+        attState[r.jemaat_id] = { status: 'Absen', alasan: '' };
+      } else {
+        attState[r.jemaat_id] = { status: record.status_hadir, alasan: record.alasan || '' };
+      }
+      renderMembers();
+    }
+  }
+}
+
+// Handle perubahan tabel jemaat dari pengurus lain
+function realtimeHandleJemaat(event, record, oldRecord) {
+  if (!RAW) return;
+
+  if (event === 'DELETE') {
+    const old = oldRecord;
+    if (!old) return;
+    RAW.jemaat = RAW.jemaat.filter(m => m.id !== old.id);
+    delete RAW.absensi_map[old.id];
+  } else if (event === 'INSERT') {
+    if (record && !RAW.jemaat.find(m => m.id === record.id)) {
+      RAW.jemaat.push(record);
+      RAW.jemaat.sort((a,b) => a.nama.localeCompare(b.nama));
+    }
+  } else if (event === 'UPDATE') {
+    const idx = RAW.jemaat.findIndex(m => m.id === record.id);
+    if (idx > -1) Object.assign(RAW.jemaat[idx], record);
+  }
+
+  // Re-render halaman yang sedang aktif
+  if (document.getElementById('pageAtt').classList.contains('active')) {
+    initAttPage();
+  }
+}
+
 // ── STATE ────────────────────────────────────────────────────
 let PIN = '';
 let RAW = null;
@@ -1397,10 +1702,19 @@ let attState       = {};
 let pendingChanges = {};
 let komisiFilter   = '';
 let keluargaFilterVal = '';
-let sortByKeluarga = false;
+let sortByKeluarga = true;
 let alasanTarget   = null;
 let alasanSelected = '';
 let alasanPrevState = null;
+
+// ── STICKY FILTER BAR: hitung top dinamis di bawah att-header ─
+function updateFilterBarTop() {
+  const header = document.getElementById('attHeader');
+  const filterBar = document.getElementById('filterBar');
+  if (header && filterBar) {
+    filterBar.style.top = (60 + header.offsetHeight) + 'px';
+  }
+}
 
 // J-09: Debounce search
 let searchTimer;
@@ -1471,17 +1785,57 @@ async function saveSetup() {
 // Dipanggil dari Settings untuk reset koneksi
 function resetSetup() {
   if (!confirm('Reset koneksi? URL dan Key akan dihapus dari perangkat ini.')) return;
+  realtimeDisconnect();
   localStorage.removeItem('gpbsi_url');
   localStorage.removeItem('gpbsi_key');
   location.reload();
 }
 
-window.onbeforeunload = (e) => {
-  if (Object.keys(pendingChanges).length > 0) {
-    e.preventDefault();
-    return 'Ada perubahan yang belum disimpan!';
+// ── AUTOSAVE saat keluar/back ────────────────────────────────
+// Simpan otomatis pendingChanges sebelum halaman ditinggalkan
+async function autoSavePending(reason) {
+  if (!Object.keys(pendingChanges).length) return;
+  const changes = Object.entries(pendingChanges).map(([jid, c]) => ({
+    jid: parseInt(jid), status_hadir: c.status_hadir, alasan: c.alasan || ''
+  }));
+  const upsertData = changes.map(c => ({
+    tanggal: selectedDate,
+    jemaat_id: c.jid,
+    ibadah: SERVICES[currentService],
+    status_hadir: c.status_hadir,
+    alasan: c.alasan
+  }));
+  try {
+    await SB.upsert('absensi', upsertData);
+    changes.forEach(c => {
+      const svc = SERVICES[currentService];
+      if (!RAW.absensi_map[c.jid]) RAW.absensi_map[c.jid] = {};
+      if (!RAW.absensi_map[c.jid][svc]) RAW.absensi_map[c.jid][svc] = {};
+      RAW.absensi_map[c.jid][svc][selectedDate] = { status_hadir: c.status_hadir, alasan: c.alasan };
+    });
+    pendingChanges = {};
+    updateSubmitBar();
+    if (reason !== 'unload') showToast(`✅ Autosave: ${changes.length} data tersimpan`, 'success');
+  } catch(e) {
+    if (reason !== 'unload') showToast('⚠️ Autosave gagal: ' + e.message, 'error');
   }
-};
+}
+
+window.addEventListener('beforeunload', (e) => {
+  if (Object.keys(pendingChanges).length > 0) {
+    // Coba simpan synchronous via sendBeacon (best effort saat tab ditutup)
+    const changes = Object.entries(pendingChanges).map(([jid, c]) => ({
+      tanggal: selectedDate,
+      jemaat_id: parseInt(jid),
+      ibadah: SERVICES[currentService],
+      status_hadir: c.status_hadir,
+      alasan: c.alasan || ''
+    }));
+    const url = `${SUPABASE_URL}/rest/v1/absensi`;
+    const blob = new Blob([JSON.stringify(changes)], { type: 'application/json' });
+    navigator.sendBeacon && navigator.sendBeacon(url + '?apikey=' + SUPABASE_KEY, blob);
+  }
+});
 
 // ── HELPER: safe HTML escape ─────────────────────────────────
 function esc(str) {
@@ -1572,6 +1926,7 @@ function onPinOk() {
   document.getElementById('pinScreen').classList.remove('active');
   document.getElementById('appScreen').classList.add('active');
   loadData();
+  realtimeConnect();
 }
 function pinError() {
   document.querySelectorAll('.pin-dot').forEach(d => {
@@ -1695,12 +2050,11 @@ function initAttPage() {
   const allKeluarga = [...new Set(members.map(m => m.keluarga_nama).filter(Boolean))].sort();
   const kf = document.getElementById('keluargaFilter');
   kf.innerHTML = `<div class="filter-chip active" onclick="setKeluarga('',this)" style="border-color:var(--purple);color:var(--purple);">👨‍👩‍👧‍👦 Semua</div>`;
-  kf.innerHTML += `<div class="filter-chip" onclick="toggleSortKeluarga(this)" style="border-color:var(--blue);color:var(--blue);" id="sortKeluargaChip">↕ Sort Keluarga</div>`;
+  kf.innerHTML += `<div class="filter-chip${sortByKeluarga ? ' active' : ''}" onclick="toggleSortKeluarga(this)" style="border-color:var(--blue);${sortByKeluarga ? 'background:var(--blue);color:white;' : 'color:var(--blue);'}" id="sortKeluargaChip">↕ Sort: Keluarga</div>`;
   allKeluarga.forEach(k => {
     kf.innerHTML += `<div class="filter-chip" onclick="setKeluarga('${esc(k)}',this)">${esc(k)}</div>`;
   });
   keluargaFilterVal = '';
-  sortByKeluarga = false;
 
   document.getElementById('searchInput').value = '';
   loadAttState();
@@ -1747,9 +2101,13 @@ function updateDateBanner() {
 function toggleDatePicker() {
   const wrap = document.getElementById('dateScrollWrap');
   wrap.style.display = wrap.style.display === 'block' ? 'none' : 'block';
+  setTimeout(updateFilterBarTop, 50);
 }
 
-function selectDate(date, chip) {
+async function selectDate(date, chip) {
+  if (Object.keys(pendingChanges).length > 0) {
+    await autoSavePending('date_switch');
+  }
   selectedDate = date;
   document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
@@ -1802,7 +2160,10 @@ function toggleSortKeluarga(el) {
   renderMembers();
 }
 
-function setService(idx) {
+async function setService(idx) {
+  if (Object.keys(pendingChanges).length > 0) {
+    await autoSavePending('service_switch');
+  }
   currentService = idx;
   SERVICES.forEach((_,i) => {
     document.getElementById('svcTab'+i).classList.toggle('active', i===idx);
@@ -1823,7 +2184,17 @@ function renderMembers() {
   let filtered = members;
   if (komisiFilter) filtered = filtered.filter(m => m.komisi === komisiFilter);
   if (keluargaFilterVal) filtered = filtered.filter(m => m.keluarga_nama === keluargaFilterVal);
-  if (q) filtered = filtered.filter(m => m.nama.toLowerCase().includes(q));
+  if (q) {
+    // Cari nama yang cocok, lalu tampilkan seluruh anggota keluarga yang sama
+    const matchedFamilies = new Set(
+      filtered.filter(m => m.nama.toLowerCase().includes(q) && m.keluarga_nama)
+              .map(m => m.keluarga_nama)
+    );
+    filtered = filtered.filter(m =>
+      m.nama.toLowerCase().includes(q) ||
+      (m.keluarga_nama && matchedFamilies.has(m.keluarga_nama))
+    );
+  }
 
   // Sort by keluarga if enabled
   if (sortByKeluarga) {
@@ -1842,6 +2213,7 @@ function renderMembers() {
   document.getElementById('navBadge').textContent   = `${hadirCount}/${members.length}`;
 
   const list = document.getElementById('memberList');
+  updateFilterBarTop();
   if (!filtered.length) {
     list.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ditemukan</div></div>';
     return;
@@ -2080,7 +2452,7 @@ function openEditProfile(jid) {
   document.getElementById('modalMember').classList.remove('open');
 
   document.getElementById('editNamaKey').value = m.id;
-  document.getElementById('editNamaDisplay').textContent = m.nama;
+  document.getElementById('editNamaBaru').value = m.nama;
   document.getElementById('editStatus').value = m.status || 'Aktif';
   document.getElementById('editKomisi').value = m.komisi || '';
   document.getElementById('editIbadah').value = m.ibadah || 'Keduanya';
@@ -2098,7 +2470,15 @@ async function saveEditProfile() {
   const jid = parseInt(document.getElementById('editNamaKey').value);
   if (!jid) return;
 
+  const namaBaru = document.getElementById('editNamaBaru').value.trim().toUpperCase();
+  if (!namaBaru) { showToast('Nama tidak boleh kosong', 'error'); return; }
+
+  // Cek apakah nama sudah dipakai jemaat lain
+  const namaConflict = RAW.jemaat.find(x => x.id !== jid && x.nama.toUpperCase() === namaBaru);
+  if (namaConflict) { showToast('❌ Nama sudah dipakai jemaat lain', 'error'); return; }
+
   const updates = {
+    nama: namaBaru,
     status: document.getElementById('editStatus').value,
     komisi: document.getElementById('editKomisi').value,
     ibadah: document.getElementById('editIbadah').value,
@@ -2200,7 +2580,8 @@ function updateSubmitBar() {
   const bar = document.getElementById('submitBar');
   const btn = document.getElementById('submitBtn');
   bar.style.display = n > 0 ? 'block' : 'none';
-  btn.textContent = `Simpan ${n} perubahan`;
+  btn.textContent = `💾 Simpan ${n} perubahan`;
+  btn.title = 'Atau akan tersimpan otomatis saat ganti halaman';
 }
 
 async function submitBatch() {
@@ -2208,8 +2589,6 @@ async function submitBatch() {
     jid: parseInt(jid), status_hadir: c.status_hadir, alasan: c.alasan || ''
   }));
   if (!changes.length) return;
-
-  if (!confirm(`Simpan ${changes.length} perubahan absensi?`)) return;
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -2224,7 +2603,7 @@ async function submitBatch() {
       alasan: c.alasan
     }));
 
-    await SB.upsert('absensi', upsertData, 'tanggal,jemaat_id,ibadah');
+    await SB.upsert('absensi', upsertData);
 
     showToast(`✅ ${changes.length} data tersimpan`, 'success');
     pendingChanges = {};
@@ -2298,7 +2677,7 @@ async function submitAddTanggal() {
     if (records.length) {
       // Batch insert in chunks of 100
       for (let i = 0; i < records.length; i += 100) {
-        await SB.upsert('absensi', records.slice(i, i + 100), 'tanggal,jemaat_id,ibadah');
+        await SB.upsert('absensi', records.slice(i, i + 100));
       }
     }
 
@@ -2351,12 +2730,10 @@ function formatTglLahir(val) {
 }
 
 // ── PAGE SWITCHING ────────────────────────────────────────────
-function switchPage(page) {
-  // J-06: Warn if pending changes
+async function switchPage(page) {
+  // Autosave jika ada pending changes sebelum pindah halaman
   if (Object.keys(pendingChanges).length > 0) {
-    if (!confirm('Ada perubahan belum disimpan. Tinggalkan halaman?')) return;
-    pendingChanges = {};
-    updateSubmitBar();
+    await autoSavePending('tab_switch');
   }
   document.getElementById('tabAtt').classList.toggle('active', page==='att');
   document.getElementById('tabDash').classList.toggle('active', page==='dash');
@@ -2629,7 +3006,7 @@ function renderReport() {
       <div class="filter-chip" id="rptModeYear" onclick="setReportMode('year')" style="flex:1;justify-content:center;">Per Tahun</div>
     </div>
     <div id="rptSelectorDate"><select onchange="renderReportForDate(this.value)" id="reportDateSelect">${dateOpts}</select>
-      <button onclick="exportCSV(document.getElementById('reportDateSelect').value)" style="width:100%;height:40px;margin-top:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:800;font-family:var(--font);cursor:pointer;">📥 Export CSV</button></div>
+      <button onclick="openExportModal()" style="width:100%;height:40px;margin-top:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:800;font-family:var(--font);cursor:pointer;">📥 Export Laporan</button></div>
     <div id="rptSelectorMonth" style="display:none;"><select onchange="renderReportBulanan(this.value)" id="reportMonthSelect">${monthOpts}</select></div>
     <div id="rptSelectorYear" style="display:none;"><div style="font-size:14px;font-weight:700;color:var(--ink-2);padding:8px 0;">Rekap Tahun ${TAHUN_AKTIF}</div></div>
   </div><div id="reportBody"></div>`;
@@ -2652,7 +3029,7 @@ function renderReportBulanan(yearMonth){
     res[svc]={dates,rate,tH,never:mems.filter(m=>ms[m.nama].h===0),perfect:mems.filter(m=>ms[m.nama].h===dates.length&&dates.length>0)};
   });
   const bl=BULAN_FULL[parseInt(month)]+' '+year;
-  function mr(list){return list.map((m,i)=>`<div class="report-member-row"><div class="report-member-num">${i+1}</div><div class="report-member-name">${esc(m.nama)}</div><div class="report-member-komisi">${esc(m.komisi)}</div></div>`).join('');}
+  function mr(list){return [...list].sort((a,b)=>a.nama.localeCompare(b.nama)).map((m,i)=>`<div class="report-member-row"><div class="report-member-num">${i+1}</div><div class="report-member-name">${esc(m.nama)}</div><div class="report-member-komisi">${esc(m.komisi)}</div></div>`).join('');}
   body.innerHTML=`<div class="dash-section-title">Rekap ${esc(bl)}</div>
     <div class="report-summary-grid">
       ${SERVICES.map(svc=>{const r=res[svc];return`<div class="report-summary-card"><div class="report-summary-num" style="color:var(--teal)">${r.rate}%</div><div class="report-summary-label">${esc(svc)}</div><div class="report-summary-sub">${r.tH} hadir / ${r.dates.length} minggu</div></div>`;}).join('')}
@@ -2739,7 +3116,7 @@ function renderReportForDate(date) {
 
   function memberRows(list) {
     if (!list.length) return '<div style="color:var(--ink-4);font-size:13px;padding:8px 0;">Tidak ada</div>';
-    return list.map((m,i) => `
+    return [...list].sort((a,b) => a.nama.localeCompare(b.nama)).map((m,i) => `
       <div class="report-member-row">
         <div class="report-member-num">${i+1}</div>
         <div class="report-member-name">${esc(m.nama)}</div>
@@ -2778,8 +3155,34 @@ function renderReportForDate(date) {
       </div>` : ''}
     </div>
 
+    ${hasIb1 ? `
+    <!-- Absen Ibadah 1 -->
+    <div class="report-card">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          ✗ Absen Ibadah 1
+          <span class="report-card-badge" style="background:var(--amber-l);color:var(--amber);">${absenIb1.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(absenIb1)}</div>
+    </div>` : ''}
+
+    ${hasIb2 ? `
+    <!-- Absen Ibadah 2 -->
+    <div class="report-card">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          ✗ Absen Ibadah 2
+          <span class="report-card-badge" style="background:var(--amber-l);color:var(--amber);">${absenIb2.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(absenIb2)}</div>
+    </div>` : ''}
+
     <!-- Tidak hadir kedua ibadah -->
-    <div class="report-card open">
+    <div class="report-card">
       <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
         <div class="report-card-title">
           🚫 Tidak Hadir Kedua Ibadah
@@ -2801,30 +3204,6 @@ function renderReportForDate(date) {
         <div class="report-card-chevron">▼</div>
       </div>
       <div class="report-card-body">${memberRows(anakHadirIb1)}</div>
-    </div>
-
-    <!-- Hadir Ibadah 1 — Non-Anak -->
-    <div class="report-card">
-      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
-        <div class="report-card-title">
-          👥 Dewasa Hadir Ibadah 1
-          <span class="report-card-badge" style="background:var(--teal-l);color:var(--teal);">${nonAnakHadirIb1.length}</span>
-        </div>
-        <div class="report-card-chevron">▼</div>
-      </div>
-      <div class="report-card-body">${memberRows(nonAnakHadirIb1)}</div>
-    </div>
-
-    <!-- Absen Ibadah 1 -->
-    <div class="report-card">
-      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
-        <div class="report-card-title">
-          ✗ Absen Ibadah 1
-          <span class="report-card-badge" style="background:var(--amber-l);color:var(--amber);">${absenIb1.length}</span>
-        </div>
-        <div class="report-card-chevron">▼</div>
-      </div>
-      <div class="report-card-body">${memberRows(absenIb1)}</div>
     </div>` : ''}
 
     ${hasIb2 ? `
@@ -2838,8 +3217,22 @@ function renderReportForDate(date) {
         <div class="report-card-chevron">▼</div>
       </div>
       <div class="report-card-body">${memberRows(anakHadirIb2)}</div>
-    </div>
+    </div>` : ''}
 
+    ${hasIb1 ? `
+    <!-- Hadir Ibadah 1 — Non-Anak -->
+    <div class="report-card">
+      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
+        <div class="report-card-title">
+          👥 Dewasa Hadir Ibadah 1
+          <span class="report-card-badge" style="background:var(--teal-l);color:var(--teal);">${nonAnakHadirIb1.length}</span>
+        </div>
+        <div class="report-card-chevron">▼</div>
+      </div>
+      <div class="report-card-body">${memberRows(nonAnakHadirIb1)}</div>
+    </div>` : ''}
+
+    ${hasIb2 ? `
     <!-- Hadir Ibadah 2 — Non-Anak -->
     <div class="report-card">
       <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
@@ -2850,18 +3243,6 @@ function renderReportForDate(date) {
         <div class="report-card-chevron">▼</div>
       </div>
       <div class="report-card-body">${memberRows(nonAnakHadirIb2)}</div>
-    </div>
-
-    <!-- Absen Ibadah 2 -->
-    <div class="report-card">
-      <div class="report-card-header" onclick="this.closest('.report-card').classList.toggle('open')">
-        <div class="report-card-title">
-          ✗ Absen Ibadah 2
-          <span class="report-card-badge" style="background:var(--amber-l);color:var(--amber);">${absenIb2.length}</span>
-        </div>
-        <div class="report-card-chevron">▼</div>
-      </div>
-      <div class="report-card-body">${memberRows(absenIb2)}</div>
     </div>` : ''}
 
     <div style="height:20px;"></div>
@@ -3013,36 +3394,306 @@ async function doBackup() {
   }
 }
 
-// ── J-07: EXPORT CSV ──────────────────────────────────────────
-function exportCSV(date) {
+// ── EXPORT LAPORAN ────────────────────────────────────────────
+// Definisi semua kategori yang mungkin muncul
+const EXPORT_CATEGORIES = [
+  { id: 'absen_ib1',         icon: '✗',  label: 'Absen Ibadah 1',           svc: 'Ibadah 1', filter: () => true,       status: 'Absen' },
+  { id: 'absen_ib2',         icon: '✗',  label: 'Absen Ibadah 2',           svc: 'Ibadah 2', filter: () => true,       status: 'Absen' },
+  { id: 'absen_keduanya',    icon: '🚫', label: 'Tidak Hadir Kedua Ibadah', svc: null,        filter: () => true,       status: null    },
+  { id: 'hadir_ib1_anak',    icon: '👶', label: 'Anak Hadir Ibadah 1',      svc: 'Ibadah 1', filter: m => isAnak(m),   status: 'Hadir' },
+  { id: 'hadir_ib2_anak',    icon: '👶', label: 'Anak Hadir Ibadah 2',      svc: 'Ibadah 2', filter: m => isAnak(m),   status: 'Hadir' },
+  { id: 'hadir_ib1_dewasa',  icon: '👥', label: 'Dewasa Hadir Ibadah 1',    svc: 'Ibadah 1', filter: m => !isAnak(m),  status: 'Hadir' },
+  { id: 'hadir_ib2_dewasa',  icon: '👥', label: 'Dewasa Hadir Ibadah 2',    svc: 'Ibadah 2', filter: m => !isAnak(m),  status: 'Hadir' },
+];
+
+let exportChecked = new Set();
+let exportCurrentDate = '';
+let exportFmt = 'csv'; // 'csv' | 'wa'
+
+function setExportFmt(fmt) {
+  exportFmt = fmt;
+  document.getElementById('fmtCSV').classList.toggle('active', fmt === 'csv');
+  document.getElementById('fmtWA').classList.toggle('active', fmt === 'wa');
+  const btn = document.getElementById('exportRunBtn');
+  if (fmt === 'csv') {
+    btn.textContent = '📥 Download CSV';
+    btn.style.background = 'var(--green)';
+  } else {
+    btn.textContent = '💬 Salin Teks WhatsApp';
+    btn.style.background = '#25D366';
+  }
+}
+
+function openExportModal() {
   if (!RAW) return;
-  const rows = [['Nama','Komisi','Keluarga','Ibadah','Status','Alasan']];
-  RAW.jemaat.forEach(m => {
-    ['Ibadah 1','Ibadah 2'].forEach(svc => {
-      const entry = (RAW.absensi_map[m.id]||{})[svc]?.[date];
-      if (entry) {
-        rows.push([
-          '"' + m.nama + '"',
-          m.komisi || '',
-          '"' + (m.keluarga_nama || '') + '"',
-          svc,
-          entry.status_hadir,
-          entry.alasan || ''
-        ]);
-      }
+  const date = document.getElementById('reportDateSelect')?.value;
+  if (!date) { showToast('Pilih tanggal dulu', 'error'); return; }
+  exportCurrentDate = date;
+
+  // Format label tanggal
+  const dt = new Date(date + 'T00:00:00');
+  document.getElementById('exportDateLabel').textContent =
+    dt.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  const dates1 = RAW.tanggals['Ibadah 1'] || [];
+  const dates2 = RAW.tanggals['Ibadah 2'] || [];
+  const hasIb1 = dates1.includes(date);
+  const hasIb2 = dates2.includes(date);
+
+  // Hitung data untuk tiap kategori
+  const allMembers = RAW.jemaat;
+  function getStatus(jid, svc) {
+    return (RAW.absensi_map[jid]||{})[svc]?.[date]?.status_hadir || 'Absen';
+  }
+  const ib1Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 1'||ib==='keduanya'||ib===''; });
+  const ib2Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 2'||ib==='keduanya'||ib===''; });
+
+  function getCatMembers(cat) {
+    if (cat.id === 'absen_keduanya') {
+      return allMembers.filter(m => {
+        const ib = (m.ibadah||'').toLowerCase();
+        const inIb1 = ib==='ibadah 1'||ib==='keduanya'||ib==='';
+        const inIb2 = ib==='ibadah 2'||ib==='keduanya'||ib==='';
+        const h = (inIb1 && hasIb1 && getStatus(m.id,'Ibadah 1')==='Hadir') ||
+                  (inIb2 && hasIb2 && getStatus(m.id,'Ibadah 2')==='Hadir');
+        return !h;
+      });
+    }
+    const pool = cat.svc === 'Ibadah 1' ? ib1Members : ib2Members;
+    return pool.filter(m => {
+      const st = getStatus(m.id, cat.svc);
+      return (cat.status === 'Hadir' ? st === 'Hadir' : st !== 'Hadir') && cat.filter(m);
     });
+  }
+
+  // Reset format ke CSV
+  exportFmt = 'csv';
+  setExportFmt('csv');
+
+  // Reset checklist
+  exportChecked = new Set();
+  const list = document.getElementById('exportCategoryList');
+  list.innerHTML = '';
+
+  EXPORT_CATEGORIES.forEach(cat => {
+    // Tampilkan hanya kategori yang ibadah-nya ada di tanggal ini
+    const available = cat.id === 'absen_keduanya'
+      ? (hasIb1 || hasIb2)
+      : (cat.svc === 'Ibadah 1' ? hasIb1 : hasIb2);
+
+    const members = available ? getCatMembers(cat) : [];
+    const count = members.length;
+
+    // Default: centang semua yang tersedia & punya data
+    if (available && count > 0) exportChecked.add(cat.id);
+
+    const el = document.createElement('div');
+    el.className = 'export-cat-item' +
+      (available && count > 0 ? ' checked' : '') +
+      (!available ? ' disabled' : '');
+    el.id = 'exportCat_' + cat.id;
+    el.dataset.catId = cat.id;
+    el.innerHTML = `
+      <div class="export-cat-check">${available && count > 0 ? '✓' : ''}</div>
+      <div class="export-cat-icon">${cat.icon}</div>
+      <div class="export-cat-label">${cat.label}</div>
+      <div class="export-cat-count">${available ? count : '—'}</div>`;
+
+    if (available) {
+      el.onclick = () => toggleExportCat(cat.id, el);
+    }
+    list.appendChild(el);
   });
-  const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n'); // BOM for Excel
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `Absensi_GPBSI_${date}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  showToast('✅ CSV didownload!', 'success');
+
+  document.getElementById('modalExport').classList.add('open');
+}
+
+function toggleExportCat(catId, el) {
+  if (el.classList.contains('disabled')) return;
+  if (exportChecked.has(catId)) {
+    exportChecked.delete(catId);
+    el.classList.remove('checked');
+    el.querySelector('.export-cat-check').textContent = '';
+  } else {
+    exportChecked.add(catId);
+    el.classList.add('checked');
+    el.querySelector('.export-cat-check').textContent = '✓';
+  }
+}
+
+function exportSelectAll(val) {
+  document.querySelectorAll('.export-cat-item:not(.disabled)').forEach(el => {
+    const catId = el.dataset.catId;
+    if (!catId) return;
+    if (val) {
+      exportChecked.add(catId);
+      el.classList.add('checked');
+      el.querySelector('.export-cat-check').textContent = '✓';
+    } else {
+      exportChecked.delete(catId);
+      el.classList.remove('checked');
+      el.querySelector('.export-cat-check').textContent = '';
+    }
+  });
+}
+
+function runExportLaporan() {
+  if (!RAW || !exportCurrentDate) return;
+  if (exportChecked.size === 0) { showToast('Pilih minimal 1 kategori', 'error'); return; }
+
+  const date = exportCurrentDate;
+  const dates1 = RAW.tanggals['Ibadah 1'] || [];
+  const dates2 = RAW.tanggals['Ibadah 2'] || [];
+  const hasIb1 = dates1.includes(date);
+  const hasIb2 = dates2.includes(date);
+  const allMembers = RAW.jemaat;
+
+  function getStatus(jid, svc) {
+    return (RAW.absensi_map[jid]||{})[svc]?.[date]?.status_hadir || 'Absen';
+  }
+  function getAlasan(jid, svc) {
+    return (RAW.absensi_map[jid]||{})[svc]?.[date]?.alasan || '';
+  }
+  const ib1Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 1'||ib==='keduanya'||ib===''; });
+  const ib2Members = allMembers.filter(m => { const ib=(m.ibadah||'').toLowerCase(); return ib==='ibadah 2'||ib==='keduanya'||ib===''; });
+
+  function getCatMembers(cat) {
+    if (cat.id === 'absen_keduanya') {
+      return allMembers.filter(m => {
+        const ib = (m.ibadah||'').toLowerCase();
+        const inIb1 = ib==='ibadah 1'||ib==='keduanya'||ib==='';
+        const inIb2 = ib==='ibadah 2'||ib==='keduanya'||ib==='';
+        const h = (inIb1 && hasIb1 && getStatus(m.id,'Ibadah 1')==='Hadir') ||
+                  (inIb2 && hasIb2 && getStatus(m.id,'Ibadah 2')==='Hadir');
+        return !h;
+      });
+    }
+    const pool = cat.svc === 'Ibadah 1' ? ib1Members : ib2Members;
+    return pool.filter(m => {
+      const st = getStatus(m.id, cat.svc);
+      return (cat.status === 'Hadir' ? st === 'Hadir' : st !== 'Hadir') && cat.filter(m);
+    });
+  }
+
+  if (exportFmt === 'csv') {
+    // ── CSV ──────────────────────────────────────────────────
+    const rows = [['Kategori','No','Nama','Komisi','Keluarga','Ibadah','Status','Alasan']];
+    EXPORT_CATEGORIES.forEach(cat => {
+      if (!exportChecked.has(cat.id)) return;
+      const members = getCatMembers(cat);
+      if (!members.length) return;
+      rows.push([`=== ${cat.label} (${members.length}) ===`, '', '', '', '', '', '', '']);
+      members.forEach((m, i) => {
+        const svc = cat.svc || '';
+        const alasan = svc ? getAlasan(m.id, svc) : '';
+        rows.push(['', i+1, '"'+m.nama+'"', m.komisi||'', '"'+(m.keluarga_nama||'')+'"', svc, cat.status||'—', alasan]);
+      });
+      rows.push(['', '', '', '', '', '', '', '']);
+    });
+    const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Laporan_GPBSI_${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    closeModal('modalExport');
+    showToast(`✅ CSV didownload! ${exportChecked.size} kategori`, 'success');
+
+  } else {
+    // ── WHATSAPP TEXT ─────────────────────────────────────────
+    const dt = new Date(date + 'T00:00:00');
+    const tglLabel = dt.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+    let lines = [];
+    lines.push(`📋 *Laporan Ibadah GPBSI*`);
+    lines.push(`🗓 ${tglLabel}`);
+
+    EXPORT_CATEGORIES.forEach(cat => {
+      if (!exportChecked.has(cat.id)) return;
+      const members = getCatMembers(cat);
+      if (!members.length) return;
+
+      lines.push('');
+      lines.push(`${cat.icon} *${cat.label} (${members.length})*`);
+
+      // Kelompokkan per keluarga kalau ada keluarga_nama
+      const byFamily = {};
+      const noFamily = [];
+      members.forEach(m => {
+        if (m.keluarga_nama) {
+          if (!byFamily[m.keluarga_nama]) byFamily[m.keluarga_nama] = [];
+          byFamily[m.keluarga_nama].push(m);
+        } else {
+          noFamily.push(m);
+        }
+      });
+
+      let no = 1;
+      // Tampilkan per keluarga
+      Object.keys(byFamily).sort().forEach(fam => {
+        byFamily[fam].forEach(m => {
+          const alasan = cat.svc ? getAlasan(m.id, cat.svc) : '';
+          const alasanStr = alasan ? ` _(${alasan})_` : '';
+          lines.push(`${no}. ${m.nama}${alasanStr}`);
+          no++;
+        });
+      });
+      // Tampilkan yang tidak punya keluarga
+      noFamily.forEach(m => {
+        const alasan = cat.svc ? getAlasan(m.id, cat.svc) : '';
+        const alasanStr = alasan ? ` _(${alasan})_` : '';
+        lines.push(`${no}. ${m.nama}${alasanStr}`);
+        no++;
+      });
+    });
+
+    const waText = lines.join('\n');
+
+    // Tampilkan preview modal WA
+    openWAPreview(waText);
+  }
 }
 
 // ── UTILS ─────────────────────────────────────────────────────
+let waTextContent = '';
+
+function openWAPreview(text) {
+  waTextContent = text;
+  // Render preview: bold (*text*) → <b>, italic (_text_) → <i>
+  const html = text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*(.*?)\*/g, '<b>$1</b>')
+    .replace(/_(.*?)_/g, '<i>$1</i>');
+  document.getElementById('waPreviewText').innerHTML = html;
+  document.getElementById('waCopyBtn').textContent = '📋 Salin Teks';
+  document.getElementById('waCopyBtn').style.background = '#25D366';
+  closeModal('modalExport');
+  document.getElementById('modalWA').classList.add('open');
+}
+
+async function copyWAText() {
+  try {
+    await navigator.clipboard.writeText(waTextContent);
+    const btn = document.getElementById('waCopyBtn');
+    btn.textContent = '✅ Tersalin!';
+    btn.style.background = 'var(--green)';
+    setTimeout(() => {
+      btn.textContent = '📋 Salin Teks';
+      btn.style.background = '#25D366';
+    }, 2000);
+  } catch {
+    // Fallback untuk browser yang tidak support clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = waTextContent;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✅ Teks tersalin!', 'success');
+  }
+}
 function showLoading(text='Memuat...') {
   document.getElementById('loadingText').textContent = text;
   document.getElementById('loadingOverlay').classList.add('show');
