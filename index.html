@@ -961,6 +961,41 @@ body {
   padding: 2px 10px;
 }
 
+/* Log viewer */
+.log-entry {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--border);
+  background: var(--bg);
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.log-entry.error { border-left-color: var(--red); background: #fff5f5; }
+.log-entry.warn  { border-left-color: var(--amber); background: #fffbf0; }
+.log-entry.info  { border-left-color: var(--blue); background: #f0f7ff; }
+.log-entry-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 4px;
+}
+.log-level {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 4px; letter-spacing: .5px;
+}
+.log-level.error { background: var(--red-l); color: var(--red); }
+.log-level.warn  { background: var(--amber-l); color: var(--amber); }
+.log-level.info  { background: var(--blue-l); color: var(--blue); }
+.log-fungsi { font-weight: 700; color: var(--ink-2); flex: 1; }
+.log-time { font-size: 10px; color: var(--ink-4); font-family: var(--mono); }
+.log-pesan { color: var(--ink-2); margin-bottom: 3px; line-height: 1.4; }
+.log-detail {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-3); white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 60px; overflow: hidden;
+  cursor: pointer;
+}
+.log-detail.expanded { max-height: none; }
+
 /* Responsive */
 @media (min-width: 640px) {
   .member-list { padding: 16px 20px 100px; }
@@ -1307,7 +1342,7 @@ body {
             <div style="font-size:12px;color:var(--ink-3);margin-top:2px;" id="fabBackupSub">Export semua data ke JSON</div>
           </div>
         </div>
-        <div onclick="closeModal('modalFab');document.getElementById('modalSettings').classList.add('open');document.getElementById('displayUrl').textContent=SUPABASE_URL||'—';updateBackupLabel();" style="padding:16px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:12px;">
+        <div onclick="closeModal('modalFab');document.getElementById('modalSettings').classList.add('open');document.getElementById('displayUrl').textContent=SUPABASE_URL||'—';updateBackupLabel();loadLogViewer();" style="padding:16px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:12px;">
           <div style="font-size:28px;">⚙️</div>
           <div>
             <div style="font-size:15px;font-weight:800;">Pengaturan</div>
@@ -1368,6 +1403,20 @@ body {
       <div style="font-size:12px;font-family:var(--mono);color:var(--ink-2);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;word-break:break-all;margin-bottom:12px;" id="displayUrl">—</div>
       <button onclick="resetSetup()" style="width:100%;padding:12px;background:var(--red-l);color:var(--red);border:1.5px solid var(--red);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;">🔌 Ganti / Reset Koneksi</button>
       <div style="font-size:11px;color:var(--ink-4);margin-top:6px;">URL dan Key akan dihapus dari perangkat ini. Perlu input ulang saat buka app.</div>
+
+      <div style="height:20px;"></div>
+
+      <!-- Error Log -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;">Error Log</div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="loadLogViewer()" style="padding:5px 12px;background:var(--blue-l);color:var(--blue);border:1.5px solid #bfdbfe;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;">🔄 Refresh</button>
+          <button onclick="clearLogs()" style="padding:5px 12px;background:var(--red-l);color:var(--red);border:1.5px solid var(--red);border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;">🗑 Hapus</button>
+        </div>
+      </div>
+      <div id="logViewer" style="max-height:280px;overflow-y:auto;">
+        <div style="color:var(--ink-4);font-size:13px;text-align:center;padding:20px 0;">Klik Refresh untuk muat log</div>
+      </div>
 
       <div style="height:12px;"></div>
     </div>
@@ -1507,7 +1556,95 @@ const SB = {
   }
 };
 
-// ── SUPABASE REALTIME ─────────────────────────────────────────
+// ── ERROR LOGGING ─────────────────────────────────────────────
+async function appLog(level = 'error', fungsi = '', pesan = '', detail = '', extraKonteks = {}) {
+  // Selalu log ke console
+  const consoleFn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.info;
+  consoleFn(`[GPBSI ${level.toUpperCase()}] ${fungsi}: ${pesan}`, detail);
+
+  // Simpan ke Supabase (fire-and-forget, jangan throw kalau gagal)
+  if (!SUPABASE_URL || !SUPABASE_KEY) return;
+  try {
+    const konteks = {
+      tanggal: selectedDate || null,
+      ibadah: SERVICES[currentService] || null,
+      tahun: TAHUN_AKTIF || null,
+      url: window.location.href,
+      ua: navigator.userAgent.substring(0, 120),
+      ...extraKonteks
+    };
+    await fetch(`${SUPABASE_URL}/rest/v1/logs`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ level, fungsi, pesan, detail: String(detail || '').substring(0, 2000), konteks })
+    });
+  } catch {
+    // Logging gagal — jangan sampai ini menyebabkan error baru
+  }
+}
+
+async function loadLogViewer() {
+  const el = document.getElementById('logViewer');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--ink-4);font-size:13px;text-align:center;padding:16px 0;">Memuat...</div>';
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/logs?select=*&order=created_at.desc&limit=50`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const logs = await res.json();
+
+    if (!logs.length) {
+      el.innerHTML = '<div style="color:var(--ink-4);font-size:13px;text-align:center;padding:20px 0;">✅ Tidak ada error tercatat</div>';
+      return;
+    }
+
+    el.innerHTML = logs.map(log => {
+      const dt = new Date(log.created_at);
+      const tgl = dt.toLocaleDateString('id-ID', { day:'2-digit', month:'short' });
+      const jam = dt.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      const detailHtml = log.detail
+        ? `<div class="log-detail" onclick="this.classList.toggle('expanded')">${esc(log.detail)}</div>`
+        : '';
+      const konteksStr = log.konteks && Object.keys(log.konteks).length
+        ? Object.entries(log.konteks)
+            .filter(([,v]) => v !== null)
+            .map(([k,v]) => `${k}: ${v}`)
+            .join(' · ')
+        : '';
+      return `<div class="log-entry ${log.level}">
+        <div class="log-entry-header">
+          <span class="log-level ${log.level}">${log.level}</span>
+          <span class="log-fungsi">${esc(log.fungsi || '—')}</span>
+          <span class="log-time">${tgl} ${jam}</span>
+        </div>
+        <div class="log-pesan">${esc(log.pesan)}</div>
+        ${konteksStr ? `<div style="font-size:10px;color:var(--ink-4);margin-bottom:3px;">${esc(konteksStr)}</div>` : ''}
+        ${detailHtml}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--red);font-size:13px;padding:12px 0;">❌ Gagal muat log: ${esc(e.message)}<br><span style="font-size:11px;color:var(--ink-4);">Pastikan tabel logs sudah dibuat di Supabase.</span></div>`;
+  }
+}
+
+async function clearLogs() {
+  if (!confirm('Hapus semua error log?')) return;
+  try {
+    await SB.delete('logs', 'id=gte.0');
+    await loadLogViewer();
+    showToast('✅ Log dihapus', 'success');
+  } catch(e) {
+    showToast('❌ Gagal hapus log: ' + e.message, 'error');
+  }
+}
 // Subscribe ke perubahan tabel absensi & jemaat via WebSocket
 let realtimeWs = null;
 let realtimeReconnectTimer = null;
@@ -1596,8 +1733,9 @@ function realtimeConnect() {
     }
   };
 
-  realtimeWs.onerror = () => {
+  realtimeWs.onerror = (e) => {
     realtimeSetDot('disconnected');
+    appLog('warn', 'realtimeWs', 'WebSocket error', String(e?.message || ''));
   };
 
   realtimeWs.onclose = () => {
@@ -1623,13 +1761,25 @@ function realtimeDisconnect() {
 
 // Handle perubahan tabel absensi dari pengurus lain
 function realtimeHandleAbsensi(event, record, oldRecord) {
-  if (!RAW) return;
+  // Tahan event sampai loadData() selesai — hindari race condition
+  if (!isDataReady || !RAW) return;
 
   if (event === 'DELETE') {
     const old = oldRecord;
     if (!old) return;
     if (RAW.absensi_map[old.jemaat_id]?.[old.ibadah]) {
       delete RAW.absensi_map[old.jemaat_id][old.ibadah][old.tanggal];
+    }
+
+    // Hapus tanggal dari RAW.tanggals HANYA kalau tidak ada record lain
+    // di tanggal & ibadah yang sama — cegah tanggal hilang karena phantom event
+    if (old.ibadah && old.tanggal && RAW.tanggals[old.ibadah]) {
+      const masihAda = RAW.jemaat.some(m =>
+        RAW.absensi_map[m.id]?.[old.ibadah]?.[old.tanggal] !== undefined
+      );
+      if (!masihAda) {
+        RAW.tanggals[old.ibadah] = RAW.tanggals[old.ibadah].filter(t => t !== old.tanggal);
+      }
     }
   } else {
     // INSERT atau UPDATE
@@ -1670,32 +1820,40 @@ function realtimeHandleAbsensi(event, record, oldRecord) {
 
 // Handle perubahan tabel jemaat dari pengurus lain
 function realtimeHandleJemaat(event, record, oldRecord) {
-  if (!RAW) return;
+  // Tahan event sampai loadData() selesai — hindari race condition
+  if (!isDataReady || !RAW) return;
 
   if (event === 'DELETE') {
     const old = oldRecord;
     if (!old) return;
     RAW.jemaat = RAW.jemaat.filter(m => m.id !== old.id);
     delete RAW.absensi_map[old.id];
+    delete attState[old.id];
+    delete pendingChanges[old.id];
   } else if (event === 'INSERT') {
     if (record && !RAW.jemaat.find(m => m.id === record.id)) {
       RAW.jemaat.push(record);
       RAW.jemaat.sort((a,b) => a.nama.localeCompare(b.nama));
+      // Inisialisasi attState untuk jemaat baru
+      attState[record.id] = { status: 'Absen', alasan: '' };
     }
   } else if (event === 'UPDATE') {
     const idx = RAW.jemaat.findIndex(m => m.id === record.id);
     if (idx > -1) Object.assign(RAW.jemaat[idx], record);
   }
 
-  // Re-render halaman yang sedang aktif
+  // Cukup re-render tampilan yang ada — tidak perlu rebuild seluruh halaman
+  // (initAttPage() terlalu berat dan bisa menyebabkan date chips rebuild saat ada pending)
   if (document.getElementById('pageAtt').classList.contains('active')) {
-    initAttPage();
+    renderMembers();
+    updateSubmitBar();
   }
 }
 
 // ── STATE ────────────────────────────────────────────────────
 let PIN = '';
 let RAW = null;
+let isDataReady = false; // Flag: loadData() sudah selesai, Realtime boleh proses event
 let currentService = 0;
 let selectedDate   = '';
 let attState       = {};
@@ -1817,6 +1975,7 @@ async function autoSavePending(reason) {
     updateSubmitBar();
     if (reason !== 'unload') showToast(`✅ Autosave: ${changes.length} data tersimpan`, 'success');
   } catch(e) {
+    appLog('error', 'autoSavePending', e.message, e.stack, { reason, n_changes: changes.length });
     if (reason !== 'unload') showToast('⚠️ Autosave gagal: ' + e.message, 'error');
   }
 }
@@ -1943,6 +2102,7 @@ function pinError() {
 // ── LOAD DATA (Supabase) ──────────────────────────────────────
 async function loadData() {
   showLoading('Memuat data jemaat...');
+  isDataReady = false;
 
   // J-03: Load saved tahun
   const savedTahun = localStorage.getItem('gpbsi_tahun');
@@ -2000,14 +2160,16 @@ async function loadData() {
     }
 
     hideLoading();
+    isDataReady = true;
     initAttPage();
     // J-11: Cek backup reminder & update FAB label
     checkBackupReminder();
     updateFabBackupSub();
   } catch (err) {
     hideLoading();
+    isDataReady = false;
+    appLog('error', 'loadData', err.message, err.stack);
     showToast('❌ Gagal memuat: ' + err.message, 'error');
-    console.error(err);
   }
 }
 
@@ -2506,6 +2668,7 @@ async function saveEditProfile() {
       initAttPage();
     }
   } catch (err) {
+    appLog('error', 'saveEditProfile', err.message, err.stack, { jemaat_id: jid });
     showToast('❌ Gagal: ' + err.message, 'error');
   }
 
@@ -2538,6 +2701,7 @@ async function deleteJemaat() {
     closeModal('modalEdit');
     initAttPage();
   } catch (err) {
+    appLog('error', 'deleteJemaat', err.message, err.stack, { jemaat_id: jid });
     showToast('❌ Gagal hapus: ' + err.message, 'error');
   }
 }
@@ -2570,6 +2734,7 @@ async function deleteTanggal(date) {
     initAttPage();
   } catch (err) {
     hideLoading();
+    appLog('error', 'deleteTanggal', err.message, err.stack, { tanggal: date, ibadah: svcName });
     showToast('❌ Gagal hapus: ' + err.message, 'error');
   }
 }
@@ -2618,6 +2783,7 @@ async function submitBatch() {
     });
     renderMembers();
   } catch(err) {
+    appLog('error', 'submitBatch', err.message, err.stack, { n_changes: changes.length });
     showToast('❌ Gagal simpan: ' + err.message, 'error');
   }
 
@@ -2685,6 +2851,7 @@ async function submitAddTanggal() {
     closeModal('modalTanggal');
     loadData();
   } catch(err) {
+    appLog('error', 'submitAddTanggal', err.message, err.stack, { tanggal, ibadah });
     showToast('❌ Gagal: ' + err.message, 'error');
   }
   btn.disabled = false; btn.textContent = 'Tambah Tanggal';
@@ -2717,6 +2884,7 @@ async function submitAddJemaat() {
     closeModal('modalJemaat');
     loadData();
   } catch(err) {
+    appLog('error', 'submitAddJemaat', err.message, err.stack, { nama });
     showToast('❌ Gagal: ' + err.message, 'error');
   }
   btn.disabled = false; btn.textContent = 'Tambah Jemaat';
@@ -3282,6 +3450,7 @@ async function changePin() {
     document.getElementById('settConfirmPin').value = '';
     PIN = newPin; // Update current session PIN
   } catch (err) {
+    appLog('error', 'changePin', err.message, err.stack);
     showToast('❌ Gagal: ' + err.message, 'error');
   }
   btn.disabled = false; btn.textContent = '🔒 Ganti PIN';
@@ -3390,6 +3559,7 @@ async function doBackup() {
     showToast(`✅ Backup berhasil! ${jemaat.length} jemaat, ${absensi.length} absensi.`, 'success');
   } catch(e) {
     hideLoading();
+    appLog('error', 'doBackup', e.message, e.stack);
     showToast('❌ Backup gagal: ' + e.message, '');
   }
 }
