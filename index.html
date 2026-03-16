@@ -1519,10 +1519,11 @@ const SB = {
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   },
-  async upsert(table, data) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+  async upsert(table, data, onConflict = '') {
+    const qs = onConflict ? `?on_conflict=${encodeURIComponent(onConflict)}` : '';
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${qs}`, {
       method: 'POST',
-      headers: { ...this.headers(), 'Prefer': 'resolution=merge-duplicates' },
+      headers: { ...this.headers(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error(await res.text());
@@ -1964,7 +1965,7 @@ async function autoSavePending(reason) {
     alasan: c.alasan
   }));
   try {
-    await SB.upsert('absensi', upsertData);
+    await SB.upsert('absensi', upsertData, 'tanggal,jemaat_id,ibadah');
     changes.forEach(c => {
       const svc = SERVICES[currentService];
       if (!RAW.absensi_map[c.jid]) RAW.absensi_map[c.jid] = {};
@@ -2768,7 +2769,7 @@ async function submitBatch() {
       alasan: c.alasan
     }));
 
-    await SB.upsert('absensi', upsertData);
+    await SB.upsert('absensi', upsertData, 'tanggal,jemaat_id,ibadah');
 
     showToast(`✅ ${changes.length} data tersimpan`, 'success');
     pendingChanges = {};
@@ -2843,7 +2844,7 @@ async function submitAddTanggal() {
     if (records.length) {
       // Batch insert in chunks of 100
       for (let i = 0; i < records.length; i += 100) {
-        await SB.upsert('absensi', records.slice(i, i + 100));
+        await SB.upsert('absensi', records.slice(i, i + 100), 'tanggal,jemaat_id,ibadah');
       }
     }
 
