@@ -1406,6 +1406,14 @@ body {
 
       <div style="height:20px;"></div>
 
+      <!-- Data Jemaat -->
+      <div style="height:20px;"></div>
+      <div style="font-size:13px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Data Jemaat</div>
+      <button onclick="exportJemaat()" style="width:100%;padding:12px;background:var(--teal-xl);color:var(--teal);border:1.5px solid var(--teal-l);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;">📤 Export Data Jemaat (CSV)</button>
+      <div style="font-size:11px;color:var(--ink-4);margin-top:6px;">Download semua data jemaat ke CSV untuk diedit di Excel. Import kembali lewat Supabase Dashboard → Table Editor.</div>
+
+      <div style="height:20px;"></div>
+
       <!-- Error Log -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div style="font-size:13px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;">Error Log</div>
@@ -2004,8 +2012,9 @@ function esc(str) {
   return d.innerHTML;
 }
 
-// Normalisasi teks: trim + uppercase — pakai untuk semua field teks jemaat
-function u(str) { return (str || '').trim().toUpperCase(); }
+// Normalisasi teks: trim + collapse spasi ganda + uppercase
+// Konsisten dengan normalisasi di Supabase (REGEXP_REPLACE + TRIM + UPPER)
+function u(str) { return (str || '').trim().replace(/\s+/g, ' ').toUpperCase(); }
 
 // J-04: SHA-256 hash for PIN
 async function sha256(text) {
@@ -3009,7 +3018,10 @@ function renderDashboard() {
   }
 
   const komisiMap = {};
-  activeMembers.forEach(m => { komisiMap[m.komisi] = (komisiMap[m.komisi]||0) + 1; });
+  activeMembers.forEach(m => {
+    const k = (m.komisi || '').trim();
+    if (k) komisiMap[k] = (komisiMap[k]||0) + 1;
+  });
   const komisiArr = Object.entries(komisiMap).sort((a,b)=>b[1]-a[1]);
   const maxKom    = komisiArr[0]?.[1] || 1;
 
@@ -3661,7 +3673,43 @@ async function doBackup() {
   }
 }
 
-// ── EXPORT LAPORAN ────────────────────────────────────────────
+// ── EXPORT DATA JEMAAT ────────────────────────────────────────
+function exportJemaat() {
+  if (!RAW) { showToast('Data belum dimuat', 'error'); return; }
+
+  const cols = ['ID','NAMA','NAMA_LENGKAP','NICKNAME','KOMISI','IBADAH','STATUS',
+                'JENIS_KELAMIN','HP_WA','KELUARGA_ID','KELUARGA_NAMA','TGL_LAHIR'];
+
+  const rows = [cols];
+  [...RAW.jemaat]
+    .sort((a,b) => (a.keluarga_nama||'').localeCompare(b.keluarga_nama||'') || a.nama.localeCompare(b.nama))
+    .forEach(m => {
+      rows.push([
+        m.id,
+        '"' + (m.nama         ||'').replace(/"/g,'""') + '"',
+        '"' + (m.nama_lengkap ||'').replace(/"/g,'""') + '"',
+        '"' + (m.nickname     ||'').replace(/"/g,'""') + '"',
+        '"' + (m.komisi       ||'').replace(/"/g,'""') + '"',
+        '"' + (m.ibadah       ||'').replace(/"/g,'""') + '"',
+        '"' + (m.status       ||'').replace(/"/g,'""') + '"',
+        '"' + (m.jenis_kelamin||'').replace(/"/g,'""') + '"',
+        '"' + (m.hp_wa        ||'').replace(/"/g,'""') + '"',
+        '"' + (m.keluarga_id  ||'').replace(/"/g,'""') + '"',
+        '"' + (m.keluarga_nama||'').replace(/"/g,'""') + '"',
+        '"' + (m.tgl_lahir    ||'').replace(/"/g,'""') + '"',
+      ]);
+    });
+
+  const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = URL.createObjectURL(blob);
+  a.download = `GPBSI_Jemaat_${date}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`✅ ${RAW.jemaat.length} jemaat diexport`, 'success');
+}
 // Definisi semua kategori yang mungkin muncul
 const EXPORT_CATEGORIES = [
   { id: 'absen_ib1',         icon: '✗',  label: 'Absen Ibadah 1',           svc: 'Ibadah 1', filter: () => true,       status: 'Absen' },
