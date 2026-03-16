@@ -1215,7 +1215,7 @@ body {
       </div>
       <div class="form-group">
         <label class="form-label">Keluarga (Nama Kepala Keluarga)</label>
-        <input type="text" class="form-input" id="editKeluargaNama" placeholder="Contoh: Aang Chris Harjanto">
+        <input type="text" class="form-input" id="editKeluargaNama" placeholder="Contoh: Aang Chris Harjanto" oninput="this.value=this.value.toUpperCase()">
       </div>
       <div class="form-group">
         <label class="form-label">No. HP / WhatsApp</label>
@@ -1275,7 +1275,7 @@ body {
       <div style="font-size:17px;font-weight:800;margin-bottom:20px;">Tambah Jemaat Baru</div>
       <div class="form-group">
         <label class="form-label">Nama Lengkap</label>
-        <input type="text" class="form-input" id="newNama" placeholder="NAMA JEMAAT">
+        <input type="text" class="form-input" id="newNama" placeholder="NAMA JEMAAT" oninput="this.value=this.value.toUpperCase()">
       </div>
       <div class="form-group">
         <label class="form-label">Komisi</label>
@@ -2004,6 +2004,9 @@ function esc(str) {
   return d.innerHTML;
 }
 
+// Normalisasi teks: trim + uppercase — pakai untuk semua field teks jemaat
+function u(str) { return (str || '').trim().toUpperCase(); }
+
 // J-04: SHA-256 hash for PIN
 async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -2201,7 +2204,7 @@ function initAttPage() {
   selectedDate = dates[dates.length-1] || '';
   updateDateBanner();
 
-  const allKomisi = [...new Set(members.map(m => m.komisi))].sort();
+  const allKomisi = [...new Set(members.map(m => (m.komisi||'').toUpperCase()).filter(Boolean))].sort();
   const ks = document.getElementById('komisiFilter');
   ks.innerHTML = `<div class="filter-chip active" onclick="setKomisi('',this)">Semua</div>`;
   allKomisi.forEach(k => {
@@ -2209,8 +2212,8 @@ function initAttPage() {
   });
   komisiFilter = '';
 
-  // Keluarga filter
-  const allKeluarga = [...new Set(members.map(m => m.keluarga_nama).filter(Boolean))].sort();
+  // Keluarga filter — normalisasi uppercase, deduplicate
+  const allKeluarga = [...new Set(members.map(m => u(m.keluarga_nama)).filter(Boolean))].sort();
   const kf = document.getElementById('keluargaFilter');
   kf.innerHTML = `<div class="filter-chip active" onclick="setKeluarga('',this)" style="border-color:var(--purple);color:var(--purple);">👨‍👩‍👧‍👦 Semua</div>`;
   kf.innerHTML += `<div class="filter-chip${sortByKeluarga ? ' active' : ''}" onclick="toggleSortKeluarga(this)" style="border-color:var(--blue);${sortByKeluarga ? 'background:var(--blue);color:white;' : 'color:var(--blue);'}" id="sortKeluargaChip">↕ Sort: Keluarga</div>`;
@@ -2345,8 +2348,8 @@ function renderMembers() {
   const bulanIni = new Date().getMonth() + 1;
 
   let filtered = members;
-  if (komisiFilter) filtered = filtered.filter(m => m.komisi === komisiFilter);
-  if (keluargaFilterVal) filtered = filtered.filter(m => m.keluarga_nama === keluargaFilterVal);
+  if (komisiFilter) filtered = filtered.filter(m => (m.komisi||'').toUpperCase() === komisiFilter);
+  if (keluargaFilterVal) filtered = filtered.filter(m => u(m.keluarga_nama) === u(keluargaFilterVal));
   if (q) {
     // Cari nama yang cocok, lalu tampilkan seluruh anggota keluarga yang sama
     const matchedFamilies = new Set(
@@ -2362,8 +2365,8 @@ function renderMembers() {
   // Sort by keluarga if enabled
   if (sortByKeluarga) {
     filtered = [...filtered].sort((a, b) => {
-      const famA = (a.keluarga_nama || 'zzz').toLowerCase();
-      const famB = (b.keluarga_nama || 'zzz').toLowerCase();
+      const famA = u(a.keluarga_nama) || 'ZZZ';
+      const famB = u(b.keluarga_nama) || 'ZZZ';
       if (famA !== famB) return famA.localeCompare(famB);
       return a.nama.localeCompare(b.nama);
     });
@@ -2387,7 +2390,7 @@ function renderMembers() {
     // Keluarga separator when sorted by keluarga
     let keluargaHeader = '';
     if (sortByKeluarga || keluargaFilterVal) {
-      const fam = m.keluarga_nama || 'Tanpa Keluarga';
+      const fam = u(m.keluarga_nama) || 'TANPA KELUARGA';
       if (fam !== lastKeluarga) {
         lastKeluarga = fam;
         keluargaHeader = `<div style="font-size:12px;font-weight:800;color:var(--purple);padding:12px 0 4px;display:flex;align-items:center;gap:6px;${idx>0?'margin-top:8px;border-top:2px solid var(--purple-l);padding-top:16px;':''}">
@@ -2643,9 +2646,9 @@ async function saveEditProfile() {
   const updates = {
     nama: namaBaru,
     status: document.getElementById('editStatus').value,
-    komisi: document.getElementById('editKomisi').value,
+    komisi: u(document.getElementById('editKomisi').value),
     ibadah: document.getElementById('editIbadah').value,
-    keluarga_nama: document.getElementById('editKeluargaNama').value.trim(),
+    keluarga_nama: u(document.getElementById('editKeluargaNama').value),
     hp_wa: document.getElementById('editHpWa').value.trim(),
     jenis_kelamin: document.getElementById('editJenisKelamin').value,
     tgl_lahir: document.getElementById('editTglLahir').value.trim()
@@ -2784,8 +2787,14 @@ async function submitBatch() {
     });
     renderMembers();
   } catch(err) {
-    appLog('error', 'submitBatch', err.message, err.stack, { n_changes: changes.length });
-    showToast('❌ Gagal simpan: ' + err.message, 'error');
+    let pesanUser = err.message;
+    try {
+      const parsed = JSON.parse(err.message);
+      if (parsed.code === '23505') pesanUser = 'Data duplikat — coba refresh dan ulangi';
+      else if (parsed.message) pesanUser = parsed.message;
+    } catch { /* bukan JSON */ }
+    appLog('error', 'submitBatch', pesanUser, err.stack, { n_changes: changes.length });
+    showToast('❌ Gagal simpan: ' + pesanUser, 'error');
   }
 
   btn.disabled = false;
@@ -2862,6 +2871,12 @@ async function submitAddJemaat() {
   const nama = document.getElementById('newNama').value.trim().toUpperCase();
   if (!nama) { showToast('Nama tidak boleh kosong', 'error'); return; }
 
+  // Cek duplikat lokal dulu sebelum kirim ke Supabase
+  if (RAW && RAW.jemaat.find(m => m.nama.toUpperCase() === nama)) {
+    showToast(`❌ "${nama}" sudah terdaftar`, 'error');
+    return;
+  }
+
   const btn = document.getElementById('addJemaatBtn');
   btn.disabled = true; btn.textContent = 'Mendaftarkan...';
 
@@ -2870,7 +2885,7 @@ async function submitAddJemaat() {
       nama,
       nama_lengkap: '',
       nickname: '',
-      komisi: document.getElementById('newKomisi').value,
+      komisi: u(document.getElementById('newKomisi').value),
       ibadah: document.getElementById('newIbadah').value,
       status: 'Aktif',
       jenis_kelamin: document.getElementById('newJenisKelamin').value,
@@ -2885,8 +2900,19 @@ async function submitAddJemaat() {
     closeModal('modalJemaat');
     loadData();
   } catch(err) {
-    appLog('error', 'submitAddJemaat', err.message, err.stack, { nama });
-    showToast('❌ Gagal: ' + err.message, 'error');
+    // Parse pesan error Supabase menjadi lebih ramah
+    let pesanUser = err.message;
+    try {
+      const parsed = JSON.parse(err.message);
+      if (parsed.code === '23505' && parsed.message?.includes('jemaat_nama_key')) {
+        pesanUser = `Nama "${nama}" sudah terdaftar di database`;
+      } else if (parsed.message) {
+        pesanUser = parsed.message;
+      }
+    } catch { /* bukan JSON, pakai pesan asli */ }
+
+    appLog('error', 'submitAddJemaat', pesanUser, err.stack, { nama });
+    showToast('❌ ' + pesanUser, 'error');
   }
   btn.disabled = false; btn.textContent = 'Tambah Jemaat';
 }
@@ -3175,14 +3201,35 @@ function renderReport() {
       <div class="filter-chip" id="rptModeYear" onclick="setReportMode('year')" style="flex:1;justify-content:center;">Per Tahun</div>
     </div>
     <div id="rptSelectorDate"><select onchange="renderReportForDate(this.value)" id="reportDateSelect">${dateOpts}</select>
-      <button onclick="openExportModal()" style="width:100%;height:40px;margin-top:10px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:800;font-family:var(--font);cursor:pointer;">📥 Export Laporan</button></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button onclick="openExportModal()" style="flex:1;height:40px;background:var(--green);color:white;border:none;border-radius:10px;font-size:13px;font-weight:800;font-family:var(--font);cursor:pointer;">📥 Export Laporan</button>
+        <button id="rptSortBtn" onclick="toggleReportSort()" style="height:40px;padding:0 14px;background:var(--blue-l);color:var(--blue);border:1.5px solid #bfdbfe;border-radius:10px;font-size:12px;font-weight:800;font-family:var(--font);cursor:pointer;white-space:nowrap;">🏠 Per Keluarga</button>
+      </div></div>
     <div id="rptSelectorMonth" style="display:none;"><select onchange="renderReportBulanan(this.value)" id="reportMonthSelect">${monthOpts}</select></div>
     <div id="rptSelectorYear" style="display:none;"><div style="font-size:14px;font-weight:700;color:var(--ink-2);padding:8px 0;">Rekap Tahun ${TAHUN_AKTIF}</div></div>
   </div><div id="reportBody"></div>`;
   renderReportForDate(latestDate);
 }
 let currentReportMode='date';
-function setReportMode(mode){currentReportMode=mode;['date','month','year'].forEach(m=>{document.getElementById('rptMode'+m.charAt(0).toUpperCase()+m.slice(1)).classList.toggle('active',m===mode);document.getElementById('rptSelector'+m.charAt(0).toUpperCase()+m.slice(1)).style.display=m===mode?'':'none';});if(mode==='date'){const s=document.getElementById('reportDateSelect');if(s.value)renderReportForDate(s.value);}else if(mode==='month'){const s=document.getElementById('reportMonthSelect');if(s.value)renderReportBulanan(s.value);}else renderReportTahunan();}
+let reportSortByFamily = false;
+
+function toggleReportSort() {
+  reportSortByFamily = !reportSortByFamily;
+  const btn = document.getElementById('rptSortBtn');
+  if (btn) {
+    btn.style.background   = reportSortByFamily ? 'var(--blue)' : 'var(--blue-l)';
+    btn.style.color        = reportSortByFamily ? 'white' : 'var(--blue)';
+    btn.style.borderColor  = '#bfdbfe';
+    btn.textContent        = reportSortByFamily ? '🏠 Per Keluarga ✓' : '🏠 Per Keluarga';
+  }
+  // Re-render dengan sort baru
+  const sel = document.getElementById('reportDateSelect');
+  if (sel && sel.value) renderReportForDate(sel.value);
+}
+function setReportMode(mode){
+  reportSortByFamily = false;
+  currentReportMode=mode;['date','month','year'].forEach(m=>{document.getElementById('rptMode'+m.charAt(0).toUpperCase()+m.slice(1)).classList.toggle('active',m===mode);document.getElementById('rptSelector'+m.charAt(0).toUpperCase()+m.slice(1)).style.display=m===mode?'':'none';});if(mode==='date'){const s=document.getElementById('reportDateSelect');if(s.value)renderReportForDate(s.value);}else if(mode==='month'){const s=document.getElementById('reportMonthSelect');if(s.value)renderReportBulanan(s.value);}else renderReportTahunan();
+}
 
 function renderReportBulanan(yearMonth){
   const body=document.getElementById('reportBody');const[year,month]=yearMonth.split('-');
@@ -3285,12 +3332,61 @@ function renderReportForDate(date) {
 
   function memberRows(list) {
     if (!list.length) return '<div style="color:var(--ink-4);font-size:13px;padding:8px 0;">Tidak ada</div>';
-    return [...list].sort((a,b) => a.nama.localeCompare(b.nama)).map((m,i) => `
-      <div class="report-member-row">
-        <div class="report-member-num">${i+1}</div>
-        <div class="report-member-name">${esc(m.nama)}</div>
-        <div class="report-member-komisi">${esc(m.komisi)}</div>
-      </div>`).join('');
+
+    if (!reportSortByFamily) {
+      // Sort A-Z biasa
+      return [...list].sort((a,b) => a.nama.localeCompare(b.nama)).map((m,i) => `
+        <div class="report-member-row">
+          <div class="report-member-num">${i+1}</div>
+          <div class="report-member-name">${esc(m.nama)}</div>
+          <div class="report-member-komisi">${esc(m.komisi)}</div>
+        </div>`).join('');
+    }
+
+    // Sort per keluarga — kelompokkan lalu urutkan nama dalam keluarga
+    const families = {};
+    const noFamily = [];
+    [...list].forEach(m => {
+      if (m.keluarga_nama) {
+        if (!families[m.keluarga_nama]) families[m.keluarga_nama] = [];
+        families[m.keluarga_nama].push(m);
+      } else {
+        noFamily.push(m);
+      }
+    });
+    // Sort nama dalam tiap keluarga
+    Object.keys(families).forEach(f => families[f].sort((a,b) => a.nama.localeCompare(b.nama)));
+    noFamily.sort((a,b) => a.nama.localeCompare(b.nama));
+
+    let no = 1;
+    let html = '';
+    // Keluarga A-Z
+    Object.keys(families).sort().forEach(fam => {
+      html += `<div style="font-size:11px;font-weight:800;color:var(--purple);padding:10px 0 4px;display:flex;align-items:center;gap:5px;border-top:1px solid var(--purple-l);margin-top:4px;">
+        🏠 ${esc(fam)} <span style="font-weight:500;color:var(--ink-4);">(${families[fam].length})</span>
+      </div>`;
+      families[fam].forEach(m => {
+        html += `<div class="report-member-row">
+          <div class="report-member-num">${no++}</div>
+          <div class="report-member-name">${esc(m.nama)}</div>
+          <div class="report-member-komisi">${esc(m.komisi)}</div>
+        </div>`;
+      });
+    });
+    // Yang tidak punya keluarga
+    if (noFamily.length) {
+      html += `<div style="font-size:11px;font-weight:800;color:var(--ink-4);padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">
+        — Tanpa Keluarga (${noFamily.length})
+      </div>`;
+      noFamily.forEach(m => {
+        html += `<div class="report-member-row">
+          <div class="report-member-num">${no++}</div>
+          <div class="report-member-name">${esc(m.nama)}</div>
+          <div class="report-member-komisi">${esc(m.komisi)}</div>
+        </div>`;
+      });
+    }
+    return html;
   }
 
   function toggleCard(el) {
