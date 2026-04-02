@@ -1002,6 +1002,157 @@ body {
   .stats-grid { grid-template-columns: repeat(4,1fr); }
   .report-summary-grid { grid-template-columns: repeat(4,1fr); }
 }
+
+/* ══════════════════════════════════════════
+   ✨ COSMETIC TOUCHUPS
+   ══════════════════════════════════════════ */
+
+/* 1. Avatar warna-warni per inisial */
+.avatar-a { background: #6366f1 !important; }
+.avatar-b { background: #8b5cf6 !important; }
+.avatar-c { background: #ec4899 !important; }
+.avatar-d { background: #f43f5e !important; }
+.avatar-e { background: #0ea5e9 !important; }
+.avatar-f { background: #14b8a6 !important; }
+.avatar-g { background: #10b981 !important; }
+.avatar-h { background: #f59e0b !important; }
+.avatar-i { background: #ef4444 !important; }
+.avatar-j { background: #3b82f6 !important; }
+.avatar-k { background: #a855f7 !important; }
+.avatar-l { background: #06b6d4 !important; }
+.avatar-m { background: #84cc16 !important; }
+.avatar-n { background: #f97316 !important; }
+.avatar-o { background: #e11d48 !important; }
+.avatar-p { background: #0d9488 !important; }
+.avatar-q { background: #7c3aed !important; }
+.avatar-r { background: #dc2626 !important; }
+.avatar-s { background: #2563eb !important; }
+.avatar-t { background: #059669 !important; }
+.avatar-u { background: #d97706 !important; }
+.avatar-v { background: #9333ea !important; }
+.avatar-w { background: #0891b2 !important; }
+.avatar-x { background: #be185d !important; }
+.avatar-y { background: #16a34a !important; }
+.avatar-z { background: #b45309 !important; }
+
+/* Hadir state: sedikit gelap tapi tetap berwarna */
+.member-card.is-hadir .member-avatar {
+  filter: brightness(0.82) !important;
+}
+
+/* 2. Backdrop blur pada modal overlay */
+.modal-overlay {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay { backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+/* 3. Progress bar di stats header */
+.stats-bar { position: relative; }
+.stat-box { position: relative; overflow: hidden; }
+.stat-progress {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--teal);
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+.stat-box:has(.stat-num.absen) .stat-progress { background: var(--red); }
+
+/* 4. Staggered chart bar animation */
+@keyframes barRiseIn {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+.chart-bar {
+  transform-origin: bottom;
+  animation: barRiseIn .5s cubic-bezier(.4,0,.2,1) both;
+}
+.chart-bar-wrap:nth-child(1) .chart-bar  { animation-delay: .05s; }
+.chart-bar-wrap:nth-child(2) .chart-bar  { animation-delay: .10s; }
+.chart-bar-wrap:nth-child(3) .chart-bar  { animation-delay: .15s; }
+.chart-bar-wrap:nth-child(4) .chart-bar  { animation-delay: .20s; }
+.chart-bar-wrap:nth-child(5) .chart-bar  { animation-delay: .25s; }
+.chart-bar-wrap:nth-child(6) .chart-bar  { animation-delay: .30s; }
+.chart-bar-wrap:nth-child(7) .chart-bar  { animation-delay: .35s; }
+.chart-bar-wrap:nth-child(8) .chart-bar  { animation-delay: .40s; }
+
+/* 5. Toggle micro-animation: flash hijau saat ON */
+@keyframes toggleFlash {
+  0%   { box-shadow: 0 0 0 0 rgba(13,148,136,.6); }
+  60%  { box-shadow: 0 0 0 8px rgba(13,148,136,0); }
+  100% { box-shadow: 0 0 0 0 rgba(13,148,136,0); }
+}
+.toggle.on { animation: toggleFlash .4s ease-out; }
+
+/* 6. Sliding pill nav tab */
+.nav-tabs { position: relative; }
+.nav-tab-pill {
+  position: absolute;
+  top: 3px; left: 3px;
+  height: calc(100% - 6px);
+  background: var(--teal);
+  border-radius: 7px;
+  transition: transform .25s cubic-bezier(.4,0,.2,1), width .25s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+  z-index: 0;
+}
+.nav-tab {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+.nav-tab.active { background: transparent !important; color: white !important; }
+
+/* 7. Toast upgrade: shadow + ikon area */
+.toast {
+  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+  bottom: 96px;
+  border-radius: 24px;
+  padding: 11px 22px;
+  font-size: 13.5px;
+  letter-spacing: .1px;
+}
+
+/* 8. Empty state bounce */
+@keyframes emptyBounce {
+  0%, 100% { transform: translateY(0); }
+  40%       { transform: translateY(-10px); }
+  60%       { transform: translateY(-5px); }
+}
+.empty-icon {
+  display: inline-block;
+  animation: emptyBounce 2.4s ease-in-out infinite;
+}
+
+/* 9. Date chip "hari ini" indicator dot */
+.date-chip.today::after {
+  content: '';
+  display: block;
+  width: 5px; height: 5px;
+  background: var(--teal);
+  border-radius: 50%;
+  margin: 3px auto 0;
+}
+.date-chip.active.today::after { background: rgba(255,255,255,.8); }
+
+/* 10. PIN screen fade-in + slide-up */
+@keyframes pinFadeIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#pinScreen .pin-logo {
+  animation: pinFadeIn .5s ease-out both;
+}
+#pinScreen .pin-card {
+  animation: pinFadeIn .5s .15s ease-out both;
+}
+
+/* member-detail-avatar juga ikut warna inisial */
+.member-detail-avatar { background: var(--teal); }
 </style>
 </head>
 <body>
@@ -1066,7 +1217,8 @@ body {
 <div id="appScreen" class="screen">
   <nav class="nav">
     <div class="nav-brand">GP<span>BSI</span></div>
-    <div class="nav-tabs">
+    <div class="nav-tabs" id="navTabs">
+      <div class="nav-tab-pill" id="navTabPill"></div>
       <div class="nav-tab active" id="tabAtt" onclick="switchPage('att')">Absensi</div>
       <div class="nav-tab" id="tabDash" onclick="switchPage('dash')">Dashboard</div>
       <div class="nav-tab" id="tabReport" onclick="switchPage('report')">Report</div>
@@ -1096,10 +1248,12 @@ body {
         <div class="stat-box">
           <div class="stat-num hadir" id="statHadir">0</div>
           <div class="stat-label">Hadir</div>
+          <div class="stat-progress" id="pbHadir" style="width:0%"></div>
         </div>
         <div class="stat-box">
           <div class="stat-num absen" id="statAbsen">0</div>
           <div class="stat-label">Belum</div>
+          <div class="stat-progress" id="pbAbsen" style="width:0%"></div>
         </div>
         <div class="stat-box">
           <div class="stat-num total" id="statTotal">0</div>
@@ -2106,6 +2260,8 @@ async function verifyPin() {
 function onPinOk() {
   document.getElementById('pinScreen').classList.remove('active');
   document.getElementById('appScreen').classList.add('active');
+  // Init sliding nav pill setelah elemen terrender
+  requestAnimationFrame(() => updateNavPill());
   loadData();
   realtimeConnect();
 }
@@ -2204,10 +2360,12 @@ function initAttPage() {
 
   const scroll = document.getElementById('dateScroll');
   scroll.innerHTML = '';
+  const todayStr = new Date().toISOString().slice(0,10);
   dates.forEach((date, i) => {
     const dt  = new Date(date + 'T00:00:00');
     const chip = document.createElement('div');
-    chip.className = 'date-chip' + (i === dates.length-1 ? ' active' : '');
+    const isToday = date === todayStr;
+    chip.className = 'date-chip' + (i === dates.length-1 ? ' active' : '') + (isToday ? ' today' : '');
     chip.innerHTML = `<span class="day">${dt.getDate()}</span><span class="mon">${BULAN_NAMES[dt.getMonth()+1]}</span>`;
     chip.onclick = () => selectDate(date, chip);
     // J-12: Long press to delete date
@@ -2376,6 +2534,12 @@ async function setService(idx) {
   initAttPage();
 }
 
+// ── AVATAR COLOR HELPER ───────────────────────────────────────
+function avatarClass(nama) {
+  const first = (nama || '').trim()[0] || 'A';
+  return 'avatar-' + first.toLowerCase().replace(/[^a-z]/g, 'p');
+}
+
 // ── RENDER MEMBERS ────────────────────────────────────────────
 function renderMembers() {
   if (!RAW) return;
@@ -2410,10 +2574,16 @@ function renderMembers() {
   }
 
   const hadirCount = members.filter(m => attState[m.id]?.status === 'Hadir').length;
+  const totalCount = members.length;
+  const hadirPct   = totalCount ? Math.round(hadirCount / totalCount * 100) : 0;
+  const absenPct   = totalCount ? Math.round((totalCount - hadirCount) / totalCount * 100) : 0;
   document.getElementById('statHadir').textContent = hadirCount;
-  document.getElementById('statAbsen').textContent  = members.length - hadirCount;
-  document.getElementById('statTotal').textContent  = members.length;
-  document.getElementById('navBadge').textContent   = `${hadirCount}/${members.length}`;
+  document.getElementById('statAbsen').textContent  = totalCount - hadirCount;
+  document.getElementById('statTotal').textContent  = totalCount;
+  document.getElementById('navBadge').textContent   = `${hadirCount}/${totalCount}`;
+  // Progress bars
+  const pbH = document.getElementById('pbHadir'); if (pbH) pbH.style.width = hadirPct + '%';
+  const pbA = document.getElementById('pbAbsen'); if (pbA) pbA.style.width = absenPct + '%';
 
   const list = document.getElementById('memberList');
   updateFilterBarTop();
@@ -2472,7 +2642,7 @@ function renderMembers() {
     ].filter(Boolean).join(' ');
 
     return `${keluargaHeader}<div class="${cardClass}">
-      <div class="member-avatar" onclick="openMemberDetail(${m.id})">${esc(initials)}</div>
+      <div class="member-avatar ${avatarClass(m.nama)}" onclick="openMemberDetail(${m.id})">${esc(initials)}</div>
       <div class="member-info" onclick="openMemberDetail(${m.id})">
         <div class="member-name">
           ${esc(tc(m.nama))}
@@ -2615,7 +2785,7 @@ function openMemberDetail(jid) {
 
   document.getElementById('modalMemberBody').innerHTML = `
     <div class="member-detail-header">
-      <div class="member-detail-avatar" style="${isBday?'background:var(--purple)':''}">${isBday?'🎂':esc(initials)}</div>
+      <div class="member-detail-avatar ${isBday?'':''+avatarClass(m.nama)}" style="${isBday?'background:var(--purple)':''}">${isBday?'🎂':esc(initials)}</div>
       <div style="flex:1;min-width:0;">
         <div class="member-detail-name">${esc(tc(m.nama))} ${statusLabel}</div>
         ${namaLengkap ? `<div style="font-size:12px;color:var(--ink-3);margin-top:1px;">${namaLengkap}</div>` : ''}
@@ -2985,6 +3155,15 @@ async function switchPage(page) {
   document.getElementById('fabBtn').style.display = page==='att' ? 'flex' : 'none';
   if (page === 'dash' && RAW) renderDashboard();
   if (page === 'report' && RAW) renderReport();
+  updateNavPill();
+}
+
+function updateNavPill() {
+  const pill = document.getElementById('navTabPill');
+  const activeTab = document.querySelector('.nav-tab.active');
+  if (!pill || !activeTab) return;
+  pill.style.width  = activeTab.offsetWidth + 'px';
+  pill.style.transform = `translateX(${activeTab.offsetLeft - 3}px)`;
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────
